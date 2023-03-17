@@ -1,8 +1,9 @@
 #!/bin/bash
+## 1) The arugument 1 is the ProjectName you wish to give for your project
+## 2) The arugment 2 is the Directory Location where you want to create the project
 ProjectName=$1
-DirectoryName=$2
-#####echo "$DirectoryName"
-DirandProjectName="$DirectoryName""/""$ProjectName"
+DirectoryLocationName=$2
+DirandProjectName="$DirectoryLocationName""/""$ProjectName"
 
 if [[ ! -e $DirandProjectName ]]; then
 	mkdir $DirandProjectName
