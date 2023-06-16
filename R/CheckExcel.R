@@ -18,7 +18,7 @@ if(length(RXF1) >= 1)
 ##print(dim(RXF3)[1])
 RV=dim(RXF3)[1]
 RV1=RV-2
-print(RV1)
+print(RV)
 ##num1="$RV"
 ##num2=2
 ##echo $RV
