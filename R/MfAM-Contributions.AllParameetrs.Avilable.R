@@ -10135,9 +10135,7 @@ for(i in 1:length(LmeCmu1))
                   print("enter the line ...868")
                   ######################################
                   outn1<-Ikfilter(FSMV2,lst2,RRV2,AIN,fmass,FRTL1)
-		  print("checking the value of outn1")
-		  print(outn1)
-                  len2<-length(outn1)
+		  len2<-length(outn1)
                   ####################################################
                   if(len2 > 1)
                   {
