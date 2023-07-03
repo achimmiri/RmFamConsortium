@@ -21,6 +21,8 @@
 ##BiocManager::install("ChemmineOB")
 ##BiocManager::install("Rdisop")
 ##install.packages("GMCM")
+##install.packages("remotes")
+###remotes::install_github("tlcaputi/tlcPack")
 ###################################################################
 ###################################################################
 library(devtools)
@@ -70,8 +72,8 @@ library("R.utils")
 
 ########## Step1: Reading the API key ####################################
 ##########################################################################
-Sys.setenv(CHEMSPIDER_KEY = apikey)
-rr_auth(apikey)
+###Sys.setenv(CHEMSPIDER_KEY = apikey)
+##rr_auth(apikey)
 ###########################################################################
 ###########################################################################
 args <- commandArgs(TRUE)
@@ -79,6 +81,14 @@ File1<-args[1]
 mz_Tol=as.numeric(args[2])
 RT_Tol=(as.numeric(args[3])/100)
 DEFAULT_MZ_TOLERANCE=as.numeric(args[4])
+apikey = args[5]
+############################################################################
+############################################################################
+Sys.setenv(CHEMSPIDER_KEY = apikey)
+rr_auth(apikey)
+## adding two more arguments to read the ADI.4.csv ..which is the adduct file
+AIN1 = args[6]
+AD = args[7]
 ##########################################################################
 ###########################################################################
 Fi <- unlist(strsplit(File1, "/"))
@@ -109,7 +119,8 @@ N1Fi6<-NFi6[1]
 ##AIN1<-read.table("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/scripts/ADI.4.csv",sep=",",header=F,quote="",stringsAsFactors = FALSE)
 ##AIN2<-read.table("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/scripts/ADI.4.csv",sep=",",header=F,stringsAsFactors = FALSE)
 #####################################################################
-AIN1<-read.csv2("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/scripts/ADI.4.csv",sep=",",header=F,quote="",stringsAsFactors = FALSE)
+##AIN1<-read.csv2("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/scripts/ADI.4.csv",sep=",",header=F,quote="",stringsAsFactors = FALSE)
+AIN1<-read.csv2(AIN1,sep=",",header=F,quote="",stringsAsFactors = FALSE)
 AIN<-AIN1
 ####################################################################
 AIN$V1<-gsub(pattern = "\"", replacement = "", x = AIN$V1)
@@ -121,7 +132,8 @@ AIN$V6<-gsub(pattern = "\"", replacement = "", x = AIN$V6)
 AIN$V7<-gsub(pattern = "\"", replacement = "", x = AIN$V7)
 AIN$V8<-gsub(pattern = "\"", replacement = "", x = AIN$V8)
 ####################### adding the new database table####################
-AD<-read.table("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/scripts/Database_Dec2017.txt",sep="\t",header=TRUE,fill = TRUE,stringsAsFactors = FALSE)
+##AD<-read.table("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/scripts/Database_Dec2017.txt",sep="\t",header=TRUE,fill = TRUE,stringsAsFactors = FALSE)
+###AD<-read.table("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/scripts/Database_Dec2017.txt",sep="\t",header=TRUE,fill = TRUE,stringsAsFactors = FALSE)
 numbers_only <- function(x) !grepl("\\D", x)
 ####################Step3: READ the meta data file ##############
 RXF<-readxl::read_excel(File1, sheet = 1, col_names = TRUE,skip=1,.name_repair="minimal")
@@ -2333,11 +2345,12 @@ comwithNu <- function(elem)
       !grepl("^[0-9]*[.])?[0-9]+", elem)) {
     elem1 <- stringi::stri_extract_first(elem, regex = "[0-9]+")
     elem2 <- substring(elem, 2)
-    if (numbers_only(elem1) &!gdata::startsWith(elem2, pattern = "M") &!gdata::startsWith(elem2, pattern = "*")){
+    #######if (numbers_only(elem1) &!gdata::startsWith(elem2, pattern = "M") &!gdata::startsWith(elem2, pattern = "*")){
+    if (tlcPack::numbers_only(elem1) &!gdata::startsWith(elem2, pattern = "M") &!gdata::startsWith(elem2, pattern = "*")){
       nelem1 = paste(elem1,"*",enviGCMS::getmass(elem2),sep="")
       tes1 <- c(tes1,nelem1)
-    }else if(numbers_only(elem1) & gdata::startsWith(elem2, pattern = "M") & !gdata::startsWith(elem2, pattern = "*"))
-    {
+    ###}else if(numbers_only(elem1) & gdata::startsWith(elem2, pattern = "M") & !gdata::startsWith(elem2, pattern = "*"))
+      }else if(tlcPack::numbers_only(elem1) & gdata::startsWith(elem2, pattern = "M") & !gdata::startsWith(elem2, pattern = "*")){
       nelem1 = paste(elem1,"*",elem2,sep="")
       tes1 <- c(tes1,nelem1)
     }else{
@@ -2359,6 +2372,8 @@ comwithNu <- function(elem)
 
 comNFMDA<-function(tes)
 {
+ 
+ 	
   tes1<-c()
   for(i in c(1:length(tes)))
   {
@@ -2373,17 +2388,20 @@ comNFMDA<-function(tes)
     }else if(tes[i]=="[M]"){
       tes1<-c(tes1,"M")
     }else{
-      if(!sjmisc::is_empty(tryCatch({AD[AD$formula==tes[i],]$exactMass[1]},warning=function(cond){message("error in data base search")})))
+      
+
+      ###if(!sjmisc::is_empty(tryCatch({AD[AD$formula==tes[i],]$exactMass[1]},warning=function(cond){message("error in data base search")})))
+      if(!sjmisc::is_empty(tryCatch({AD[AD$formula==tes[i],]$exactMass[1]},error=function(cond){return(NA)})))
       {
-        val=tryCatch({AD[AD$formula==tes[i],]$exactMass[1]},warning=function(cond){message("error in data base search")})
+
+        val=tryCatch({AD[AD$formula==tes[i],]$exactMass[1]},error=function(cond){return(NA)})
         tes1<-c(tes1,val)
       }else if(grepl("^[[:digit:]]+", tes[i])){
         ########################
-        ##print("entering this part")
-        ##print(tes[i])
-        ###print(VL)
-        #######################      
+        ########################      
         VL<-comwithNu(tes[i])
+        ##############################
+        ##############################
         tes1<-c(tes1,VL)
         #######################
         
@@ -2430,7 +2448,6 @@ FADINF<-function(addu1)
     ########################################################
     if(!sjmisc::is_empty(addu3))
     ##########################################################	    
-      ###if(!sjmisc::is_empty(str_replace_all(addu3, "\"", "")))
     #########################################################	    
     {
       ##print(addu3)
@@ -2615,23 +2632,32 @@ MaKlist<-function(gFile)
 	    ## commenting the original addu and addu1
 	    addu<-grep("PRECURSORTYPE:|ADDUCTIONNAME:",lst2[[FLV]])
 	    addu1<-stringr::str_trim(gsub('PRECURSORTYPE:|ADDUCTIONNAME:','',lst2[[FLV]][addu]))
+	    ##############################
 
       #####################
       cha<-stringr::word(addu1, 2, sep="]")
+      #######################
+      #########################
       if(cha=="-")
       {
         
         cha<-"1-"
         addu2<-tryCatch({qdapRegex::ex_between(addu1, "[", "]")[[1]]},warning=function(cond){message("error happened in precursortype extraction")})
         addu3<-tryCatch({AIN[AIN$V1==addu2 & AIN$V3==cha,]$V2},warning=function(cond){message("adduct match is empty")})
+        
+
         if(!sjmisc::is_empty(addu3))
         {
           ##print(addu3)
           faddu<-c(faddu,addu3)
           
         }else{
-          NAF<-unlist(strsplit(sub(".*\\[([^][]+)].*", "\\1",addu2),"(?=[+-])", perl = TRUE))
+
+
+	  NAF<-unlist(strsplit(sub(".*\\[([^][]+)].*", "\\1",addu2),"(?=[+-])", perl = TRUE))
           NAF1<-comNFMDA(NAF)
+          
+
           faddu<-c(faddu,NAF1)
           
         }
@@ -2709,6 +2735,7 @@ MaKlist<-function(gFile)
           NAF2<-tryCatch({finADWC(NAF1,dIV)},error=function(cond){message("finADWC(NAF1,dIV) failing check the charge 3..neg")})
           faddu<-c(faddu,NAF2)
 	  ##############################################################
+	  ###############################################################
         }
       }else if(cha=="3+"){
         dIV<-"3"
@@ -3770,7 +3797,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
     ##########################################
     InchiV<-ifelse(!sjmisc::is_empty(IN),tryCatch({IN},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get.inchi(SM1)},error=function(cond){return(NA)}))
     ##########################################
-    AUIN<-as.character(InMEDA[["Adduct"]])
+    AUIN<-stringr::str_trim(as.character(InMEDA[["Adduct"]]))
     ##########################################
     InKeyVal<-ifelse(!sjmisc::is_empty(IK),tryCatch({IK},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get.inchi.key(SM1)},error=function(cond){return(NA)}))
     ###########################################
@@ -3782,7 +3809,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
       ##########################
       AUIN1<-tryCatch({qdapRegex::ex_between(AUIN, "[", "]")[[1]]},error=function(cond){message("Adduct value is missing")})
       AUIN2<-tryCatch({FADINF(AUIN)},error=function(cond){message("adduct value matching is not found")})      
-      AAMS<-tryCatch({stringr::str_replace(AUIN2, "M",as.character(PMZ$exactmass))},error=function(cond){message("Missing adduct replacement")})
+      AAMS<-tryCatch({stringr::str_replace(AUIN2, "M",as.character(PMZ))},error=function(cond){message("Missing adduct replacement")})
       AAMS1<-tryCatch({as.numeric(pander::evals(AAMS)[[1]]$result)},error=function(cond){message("Error in adduct replacement step")})
       #########################
       #########################
@@ -3802,6 +3829,11 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
       TRTL<-InRTL[InRTL >= VRTL & InRTL <= VRTU]
       ITRTL<-which(InRTL %in% TRTL)
       ###################################
+      print("this is the value I am printing temporary")
+      print(AUIN)
+      print(PMZ)
+      print(AAMS)
+      print(AAMS1)
       ##ITRTL<-match(TRTL,InRTL)
       ##################################
       ##################################
@@ -10092,8 +10124,9 @@ for(i in 1:length(LmeCmu1))
                 #############################################################
                 FSMV<-tryCatch({rinchi::parse.inchi(IV1)},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
                 FSMV1<-tryCatch({rcdk::get.smiles(FSMV[[1]])},error=function(cond){message("rcdk get smiles conversion is empty")})
-                FSMV2<-tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")})
-                #############################################################
+                ##FSMV2<-tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")})
+                FSMV2<-ifelse(!sjmisc::is_empty(FSMV1),tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")}),tryCatch({webchem::cs_convert(IV1,from="inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info from cs_convert")}))
+		#############################################################
 		print("the value of FSMV2")
 		print(FSMV2)
                 #############################################################
@@ -10102,6 +10135,8 @@ for(i in 1:length(LmeCmu1))
                   print("enter the line ...868")
                   ######################################
                   outn1<-Ikfilter(FSMV2,lst2,RRV2,AIN,fmass,FRTL1)
+		  print("checking the value of outn1")
+		  print(outn1)
                   len2<-length(outn1)
                   ####################################################
                   if(len2 > 1)
@@ -10115,7 +10150,8 @@ for(i in 1:length(LmeCmu1))
                     
                     ##} # end of if loop
                   }else{
-                    print("enter the line ...880")	
+                    print("enter the line ...880")
+	            print("enter the else part and that is inchikey is not able to find")	  
                     FINKE1<-NFFilter(RRV2,AIN,lst2,fmass,FRTL1)
                     ### adding this code new 
                     len3<-length(FINKE1)
@@ -10561,7 +10597,7 @@ for(i in 1:length(LmeCmu1))
       }else{
 	      print("something went wrong in MaKlist...entering the final else part")
 	      print(FiNA1[1])
-	      print("Filename that does not exists is .")
+	      print("Filename that does not exists is")
 	      print(FiNA)
 	      DN<-dirname(dirname(File1))
 	      DN1<-paste(DN,"Error-Report",sep="/")
