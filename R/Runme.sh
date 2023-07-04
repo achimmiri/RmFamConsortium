@@ -1,7 +1,13 @@
 #!/bin/bash
 ## 1) The arugument 1 is the ProjectName you wish to give for your project
 ## 2) The arugment 2 is the Directory Location where you want to create the project
-####bash Runme.sh "test-project" "/home/achimmir/temp" 25 20 0.6 "qeTvHEEPlYAefWqUpv4dJGG8w1UuxV5G" AdductFile.csv Database_Dec2017.txt
+## 3) The arugment 3 is the mz ppm
+## 4) The argument 4 is the RT ppm
+## 5) The argument 5 is the centroiding parameter
+## 6) The argument 6 is the API key
+## 7) The argument 7 is the Adduct File location 
+## 8) The argument 8 is the Database File location
+
 
 create_directory(){
 
@@ -78,7 +84,7 @@ handle_dfiles(){
 	if [[ $? -eq 1 ]]
 	then
 		####/usr/bin/env Rscript MfAM-Contributions.AllParameetrs.Avilable.R "$FFind" "$mzPPM" "$rtPPM" "$centrD"
-		/usr/bin/env Rscript MfAM-Contributions.AllParameetrs.Avilable.R "$FFind" "$mzPPM" "$rtPPM1" "$centrD" "$APIK" "$AddF" "$DBF"
+		/usr/bin/env Rscript MfAM-Contributions.AllParameetrs.Avilable.R "$FFind" "$mzPPM" "$rtPPM" "$centrD" "$APIK" "$AddF" "$DBF"
 		
 
 		CheckFoldernanme=$DirandProjectName/"converted to msp"/mz."$mzPPM"ppm."$rtPPM1"RT
@@ -92,14 +98,17 @@ handle_dfiles(){
    			echo "$CheckFoldernanme"
 			/usr/bin/env Rscript CreateCombinedmsp.R "$CheckFoldernanme"
 
-			touch $DirandProjectName/.combinedmspexists
+			###touch "$DirandProjectName"/.combinedmspexists
 
 			
 			Fcommsp=$(find "$CheckFoldernanme" -name "*combined.msp" -print0)
 
+			if [ -f "$Fcommsp" ] && [ ! -f "$DirandProjectName"/.combinedmspexists ]; then echo Hello; fi
+
 			##if [ -f "$Fcommsp" ]; then
-			if [ -f "$Fcommsp" ] && [ ! -f $DirandProjectName/.combinedmspexists ]; then
+			if [ -f "$Fcommsp" ] && [ ! -f "$DirandProjectName"/.combinedmspexists ]; then
 				
+				echo "it is passing the if loop"
 
 				Checkrow=$(/usr/bin/env Rscript CheckExcel.R "$FFind")  
 				CheckName=$(grep "NAME:" "$Fcommsp"|wc -l)
@@ -130,6 +139,9 @@ handle_dfiles(){
 						 rsync -av "$files" "$DirandProjectName"/RMassBank
 					done
 					
+					echo "files are copied so creating the combinedmspexists"
+
+					touch "$DirandProjectName"/.combinedmspexists
 
 				else
 					dialog --infobox "something went wrong in generating the combined msp file check the previous step" 20 60
