@@ -9,10 +9,15 @@ library(stringi)
 library(squash)
 ####################################
 ####################################
-MaKlist<-function(gFile)
+MaKlist<-function(FiN)
 {
   #####################################
   #####################################
+  gFile=FiN
+  #####################################
+  ####################################
+  if(!is.na(gFile) && length(gFile) >=1){
+  ##############################
   lines <- readLines(gFile)
   lst <-split(lines, cumsum(lines==""))
   lst1 <-lapply(lst, function(x) if (x[1] == "") x[-1] else x)
@@ -23,8 +28,12 @@ MaKlist<-function(gFile)
   lst2 <-lst1[names(LL1)]
   lst2<-purrr::compact(lst2)
   #####################################
+  ##print(lst2)
   #####################################
   return(lst2)
+  ##############################################
+    }## end of test if loop
+  ##############################################
 }
 ###########################################################################
 ############################################################################
@@ -34,10 +43,13 @@ FiN<-args[2]
 EXN<-args[3]
 INFL=args[4]
 ########################################
+print("the location of the FiN file")
+print(FiN)
 ########################################
 alis=MaKlist(FiN)
 ##############################################################################
 ##############################################################################
+
 File1<-DiN
 File2<-EXN
 ##############################################################################
@@ -83,8 +95,7 @@ readEXCEL<-function(RXF)
 	{
   		RXF2<- RXF[-RXF1,]
   		RXF3=RXF2
-	}else
-	{
+	}else{
   		RXF3=RXF
 	}
 	##############################################################################
@@ -96,7 +107,10 @@ readEXCEL<-function(RXF)
 
 RFT<-read.table(paste(DiN,"Filelist.2.csv",sep="/"),sep=",",header=T,fill = TRUE,stringsAsFactors = FALSE)
 UFV= unique(RFT$Files)
-###########################
+##########################################################################
+##print("printing the filename location...where is the file located")
+##print(paste(DiN,"Filelist.2.csv",sep="/"))
+
 ##########################################################################
 CN1<-c("ID","Name","SMILES","RT","CAS","Formula","Ontology","Adduct","Bpeak","Cenergy","IM","CClass","CONFIDENCE","PUBLICATION\n")
 cat(CN1,file =paste(dirname(File2),"Compoundlist.2.csv",sep="/"),sep=",")
@@ -106,7 +120,7 @@ dat1 <- data.frame()
 #######################################################
 for(i in 1:length(UFV))
 {
-	##################
+	######################
         RV=UFV[i]
 	#######################
 	#######################
@@ -135,7 +149,7 @@ for(i in 1:length(UFV))
 			RT = grep("RETENTIONTIME:",LV, value=TRUE)
                         RT1 = stringr::str_trim(sub('RETENTIONTIME: ', '', RT))
                         ########################################################
-			##print(RT1)
+			########################################################
                         SM = grep("SMILES:",LV, value=TRUE)
 			SM1 = stringr::str_trim(sub('SMILES:', '', SM))
                         CAS = ""
@@ -154,16 +168,17 @@ for(i in 1:length(UFV))
 			Cenergy1 = stringr::str_trim(sub('COLLISIONENERGY: ', '', Cenergy))
                         IM = grep("IONMODE:",LV, value=TRUE)
 			IM1 = stringr::str_trim(sub('IONMODE: ', '', IM))
-			########################
+			#################################
 			INN=grep("INCHI:",LV, value=TRUE)
 			INN1=stringr::str_trim(sub("INCHI:",'',INN))
-			###############################
+			##################################
 			SMV=grep("SMILES:",LV, value=TRUE)
 			SMV1=stringr::str_trim(sub("SMILES:",'',SMV))
 			##########################################################
 			##########################################################
-			FN=which(tools::file_path_sans_ext(as.character(RXF3[["File"]]))==gsub('.passed.msp','',RV))
-                        NAM=which(RXF3[["Name"]]==Nam1)
+			###FN=which(tools::file_path_sans_ext(as.character(RXF3[["File"]]))==gsub('.passed.msp','',RV))
+                        FN=which(tools::file_path_sans_ext(basename(as.character(RXF3[["File"]])))==gsub('.passed.msp','',basename(RV)))
+			NAM=which(RXF3[["Name"]]==Nam1)
 			FORM=which(RXF3[["Formula"]]==Form1)
 			ADUC=which(RXF3[["Adduct"]]==PTYL2)
 			CE=which(RXF3[["Collision energy"]]==Cenergy1)
@@ -174,7 +189,8 @@ for(i in 1:length(UFV))
 			SMV2=which(as.character(RXF3[["SMILES"]])==SMV1)
 			##################################
 			InVa=Reduce(intersect, list(FN,NAM))
-			##################################
+			###################################			
+			###################################
 			if(length(InVa) == 1){
 				CClass<-as.character(RXF3[InVa,][["Compound class"]])
 				CONFIDENCE<-as.character(RXF3[InVa,][["Confidence"]])
@@ -324,7 +340,6 @@ write.table(dat, file = paste(dirname(File2),"Compoundlist.2.csv",sep="/"), sep 
 ##write.table(dat2, file = paste(dirname(File2),"Compoundlist.2.csv",sep="/"), sep = ",",quote=TRUE,row.names = F, col.names = F,append=T)
 #############################################################################################################
 ############################################################################################################
-##RF<-readLines("/mnt/ifs/data/IPB/Projects/2017_005_MS-databases/mFam contributions/Ric de Vos Wageningen/test1.RDW-RMassBank/RMB_options.ini")
 ##RF<-readLines(paste(DiN,"RMB_options.ini",sep="/"))
 RF<-readLines(INFL)
 ################################
