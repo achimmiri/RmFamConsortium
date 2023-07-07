@@ -49,7 +49,6 @@ File2<-EXN
 #############################################################################
 LF<-list.files(path=File1,pattern=".passed.msp")
 ##############################################################################
-
 RXF<-readxl::read_excel(File2, sheet = 1, col_names = TRUE,skip=1,.name_repair="minimal")
 RXF[] <- lapply(RXF, function(x) type.convert(as.character(x)))
 RXF1 <- which(is.na(as.character(RXF[["File"]])))
@@ -78,9 +77,11 @@ for(i in 1:RL)
   FN<-paste0(tools::file_path_sans_ext(RXF3[i,][["File"]]),".passed.msp")
   
   ID<-i
-  
-  df<-data.frame(FN,ID)
-  
+
+
+  NFN<-paste(DiN,FN,sep="/")
+  df<-data.frame(NFN,ID)
+ 
   
   write.table(unname(df), file = paste(dirname(File2),"Filelist.2.csv",sep="/"), sep = ",",quote=TRUE,row.names = F, col.names = F,append=T)
   
