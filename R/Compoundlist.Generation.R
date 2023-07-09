@@ -43,8 +43,6 @@ FiN<-args[2]
 EXN<-args[3]
 INFL=args[4]
 ########################################
-print("the location of the FiN file")
-print(FiN)
 ########################################
 alis=MaKlist(FiN)
 ##############################################################################
@@ -108,8 +106,6 @@ readEXCEL<-function(RXF)
 RFT<-read.table(paste(DiN,"Filelist.2.csv",sep="/"),sep=",",header=T,fill = TRUE,stringsAsFactors = FALSE)
 UFV= unique(RFT$Files)
 ##########################################################################
-##print("printing the filename location...where is the file located")
-##print(paste(DiN,"Filelist.2.csv",sep="/"))
 
 ##########################################################################
 CN1<-c("ID","Name","SMILES","RT","CAS","Formula","Ontology","Adduct","Bpeak","Cenergy","IM","CClass","CONFIDENCE","PUBLICATION\n")
@@ -344,9 +340,6 @@ write.table(dat, file = paste(dirname(File2),"Compoundlist.2.csv",sep="/"), sep 
 RF<-readLines(INFL)
 ################################
 ################################
-###unique(as.character(RXF3[["Authors"]]))
-##################################
-##################################
 AuIN<-grep("authors:",RF)
 RF[AuIN]<-paste0("    authors: ",unique(as.character(RXF3[["Authors"]])))
 CoIN<-grep("copyright:",RF)
@@ -383,4 +376,5 @@ inCE <- grep("COLLISION_ENERGY:",RF)
 RF[inCE]<-paste0("    COLLISION_ENERGY: ",gsub("[^0-9]","",unique(as.character(RXF3[["Collision energy"]]))))
 #######################################################
 #######################################################
-writeLines(RF, paste(dirname(File2),"RMB_options.test2.ini",sep="/"))
+##writeLines(RF,file(paste(dirname(File2),"RMB_options.test2.ini",sep="/")),sep="\n")
+cat(RF,file=paste(dirname(File2),"RMB_options.test2.ini",sep="/"), append=TRUE, sep = "\n")
