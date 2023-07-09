@@ -1,3 +1,5 @@
+library(dplyr)
+library(tibble)
 Validate_MetaData<-function(File1)
 {
 ################################
@@ -79,8 +81,14 @@ PTV=MaKlist(FLFRD[RF])[[2]]
 
 if(dim(RXF7)[1] > 2 & !all(is.na(CRDF)) & all(as.numeric(CRDF)) & !all(is.na(PTV)))
 {
-  return(1)
+	quit(status=1)
+  ##return(1)
   ###print("select the script 1 for processing the data... it has all necessry data")
 }
 
 }
+
+args <- commandArgs(TRUE)
+File1<-args[1]
+CF=Validate_MetaData(File1)
+print(CF)
