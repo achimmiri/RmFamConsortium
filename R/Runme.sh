@@ -40,7 +40,6 @@ handle_dfiles(){
 	mzPPM=$3
 	rtPPM=$4
 	rtPPM1=$(echo "scale=1 ; $rtPPM / 100" | bc | sed 's/^\./0./')
-	##rtPPM=$((4/100))
 	centrD=$5
 	## Adding the three new arguments for apikey, adduct ,and database files
 	APIK=$6
@@ -125,7 +124,7 @@ handle_dfiles(){
 					Fmsp=$(find "$CheckFoldernanme" -name "*.msp" -print0)
 					FL=1
 					echo "copying the files ...check if it works"
-					Fmsp1=${#Fmsp[@]}
+					echo "$FFind"/*xlsx
 
 					for files in "$CheckFoldernanme"/**msp
 					do
@@ -134,11 +133,49 @@ handle_dfiles(){
 						rsync -av "$files" "$DirandProjectName"/RMassBank
 					done
 
-					for files in "$FFind"/*xlsx
+					for files in "$FFind"
 					do
 						 rsync -av "$files" "$DirandProjectName"/RMassBank
 					done
+
+					FCMSP=$(find $DirandProjectName"/RMassBank" -name "*com*" 2>/dev/null)
+					FXLSX=$(find $DirandProjectName"/RMassBank" -name "*xlsx*" 2>/dev/null)
+
+
+                                        FP=$0
+					FP1=$(realpath "$FP")
+					FP2=$(dirname "$FP1")
+
+
+					/usr/bin/env Rscript Filelist.Generation.R "$DirandProjectName"/RMassBank  "$FCMSP" "$FXLSX" 2>/dev/null
 					
+					/usr/bin/env Rscript Compoundlist.Generation.R "$DirandProjectName"/RMassBank "$FCMSP" "$FXLSX" "$FP2/RMB_options.ini" 2>/dev/null
+
+					FNRC=$(find $DirandProjectName"/RMassBank" -name "*Filelist*" 2>/dev/null)
+					CNRC=$(find $DirandProjectName"/RMassBank" -name "*Compoundlist*" 2>/dev/null)
+
+					if [ -f "$FNRC" ] &&  [ -f "$CNRC" ];then
+
+						FNC=$(cat "$FNRC"|awk '{print $1}'|wc -l)
+						CNC=$(cat "$CNRC"|awk '{print $1}'|wc -l)
+
+						if [ "$FNC" -gt 1 ] && [ "$CNC" -gt 1 ]; then
+
+							echo "This is the place where the RMassBank will be Generated"
+							/usr/bin/env Rscript RMassbank-Generation.R "$DirandProjectName"/RMassBank
+						else
+
+							echo "This is printing the values of Filelist and compound list length"
+							echo "$FNC"
+							echo "$CNC"
+							dialog --infobox "something went wrong in Filelist and Compoundlist lenth differer" 20 60
+						fi
+
+					else
+						dialog --infobox "something went wrong in Filelist and Compoundlist Generation so check the previous step" 20 60
+					fi ### this is loop check to Filelist and Compoundlist
+
+
 					echo "files are copied so creating the combinedmspexists"
 
 					touch "$DirandProjectName"/.combinedmspexists
