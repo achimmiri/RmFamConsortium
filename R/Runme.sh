@@ -159,7 +159,8 @@ handle_dfiles(){
 						FNC=$(cat "$FNRC"|awk '{print $1}'|wc -l)
 						CNC=$(cat "$CNRC"|awk '{print $1}'|wc -l)
 
-						if [ "$FNC" -gt 1 ] && [ "$CNC" -gt 1 ]; then
+						####if [ "$FNC" -gt 1 ] && [ "$CNC" -gt 1 ]; then
+						if [ "$FNC" -gt 1 ] && [ "$CNC" -gt 1 ] &&  [ "$FNC" -eq "$CNC" ]; then
 
 							echo "This is the place where the RMassBank will be Generated"
 							/usr/bin/env Rscript RMassbank-Generation.R "$DirandProjectName"/RMassBank
