@@ -150,6 +150,7 @@ LmeCmu1<-tryCatch({c(0,LmeCmu)},warning=function(cond){message("cumulative calcu
 SFileNam<-tryCatch({Lmeda$values},warning=function(cond){message("rle is not able to fetch the information properly")})
 #########################################################
 ##print(LmeCmu1)
+### REST API functions
 #########################################################
 PuInKtoSM<-function(getINK)
 {
@@ -188,443 +189,1251 @@ PuInKtoSM1<-function(getINK)
   return(csmiles)
   
 }
+
+
+ConvSMItoOID2<-function(getSMI)
+{
+url<- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/SMILES/"
+out<-tryCatch({jsonlite::fromJSON(paste0(url,getSMI, "/JSON"))} ,error = function(x) {return(NA)})
+prop.names  <-tryCatch({out$PC_Compounds$props[[1]][[1]]},error = function(x) {return(NA)})
+prop.values <- tryCatch({out$PC_Compounds$props[[1]][[2]]},error = function(x) {return(NA)})
+IUN<-tryCatch({prop.values[10,"sval"]},error = function(x) {return(NA)})
+MF<-tryCatch({prop.values[17,"sval"]},error = function(x) {return(NA)})
+MI<-tryCatch({prop.values[22,"sval"]},error = function(x) {return(0)})
+MW<-tryCatch({prop.values[18 ,"sval"]},error = function(x) {return(0)})
+IK<-tryCatch({prop.values[14 ,"sval"]},error = function(x) {return(NA)})
+IN<-tryCatch({prop.values[13 ,"sval"]},error = function(x) {return(NA)})
+return(c(IUN,MF,MI,MW,IK,IN))
+}
+##############################################################################
+##############################################################################
+ConvPCIDtoOCN<-function(getPCID)
+{
+
+  url<- "https://www.metabolomicsworkbench.org/rest/compound/pubchem_cid/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getPCID, "/all"))}, error = function(x) {return(NA)})
+  ##############################
+  ##############################
+  OIK<-tryCatch({out$inchi_key},error=function(cond){return(NA)})
+  OSM<-tryCatch({out$smiles},error=function(cond){return(NA)})
+  OCID<-tryCatch({out$pubchem_cid},error=function(cond){return(NA)})
+  OEM<-tryCatch({out$exactmass},error=function(cond){return(0)})
+  OFOR<-tryCatch({out$formula},error=function(cond){return(NA)})
+  return(c(OIK[1],OSM[1],OCID[1],OEM[1],OFOR[1]))
+  ###############################
+  ###############################
+
+}
+##############################################################################
+##############################################################################
+ConvCIDtoOID1<-function(getCID)
+{
+  #################################
+  url<-"http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getCID,"/property/CanonicalSMILES,MonoisotopicMass,InChI,InChIKey,MolecularFormula"))},error = function(x) {return(NA)})
+  ############################
+  OIK<-tryCatch({out$PropertyTable$Properties$InChIKey},error=function(cond){return(NA)})
+  OIN<-tryCatch({out$PropertyTable$Properties$InChI},error=function(cond){return(NA)})
+  OSM<-tryCatch({out$PropertyTable$Properties$CanonicalSMILES},error=function(cond){return(NA)})
+  OCID<-tryCatch({out$PropertyTable$Properties$CID},error=function(cond){return(NA)})
+  EXM<-tryCatch({out$PropertyTable$Properties$MonoisotopicMass},error=function(cond){return(0)})
+  OMF<-tryCatch({out$PropertyTable$Properties$MolecularFormula},error=function(cond){return(NA)})
+  #############################
+  return(c(tryCatch({OIN[1]},error = function(x) {return(NA)}),tryCatch({OIK[1]},error = function(x) {return(NA)}),tryCatch({OSM[1]},error = function(x) {return(NA)}),tryCatch({OCID[1]},error = function(x) {return(NA)}),tryCatch({EXM[1]},error = function(x) {return(0)}),tryCatch({OMF[1]},error = function(x) {return(NA)})))
+  #############################
+}
+
+##############################################################################
+##############################################################################
+PuNAMEtoOI<-function(getNAME)
+{
+  ###################################
+  url<- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getNAME, "/property/InChIKey"))},error = function(x) {return(NA)})
+  out1<-tryCatch({jsonlite::fromJSON(paste0(url,getNAME, "/property/CanonicalSMILES"))}, error = function(x) {return(NA)})
+  out2<-tryCatch({jsonlite::fromJSON(paste0(url,getNAME, "/property/InChI"))}, error = function(x) {return("NA")})
+  ############### InChI
+  OIN<-tryCatch({out2$PropertyTable$Properties$InChI},error=function(cond){return(NA)})
+  ############### InchIkey
+  OIK<-tryCatch({out$PropertyTable$Properties$InChIKey},error=function(cond){return(NA)})
+  ############## SMILES
+  OSM<-tryCatch({out1$PropertyTable$Properties$CanonicalSMILES},error=function(cond){return(NA)})
+  ############# Compound CID
+  OCID<-tryCatch({out1$PropertyTable$Properties$CID},error=function(cond){return(NA)})
+  ########### Exact mass
+  EXM<-tryCatch({ConvPCIDtoOCN(out1$PropertyTable$Properties$CID)[4]},error=function(cond){return(NA)})
+  ###############################
+  ###############################
+  return(c(tryCatch({OIN[1]},error = function(x) {return(NA)}),tryCatch({OIK[1]},error = function(x) {return(NA)}),tryCatch({OSM[1]},error = function(x) {return(NA)}),tryCatch({OCID[1]},error = function(x) {return(NA)}),tryCatch({EXM[1]},error = function(x) {return(0)})))
+  ###############################
+  ###############################
+}
+#############################################################################
+#############################################################################
+getCactus <- function(identifier,representation){
+  identifier <- gsub('#', '%23', identifier)
+  ret <- tryCatch(httr::GET(paste("https://cactus.nci.nih.gov/chemical/structure/",
+                                  URLencode(identifier), "/", representation, sep = "")),
+                  error = function(e) NA)
+  if (all(is.na(ret)))
+    return(NA)
+  if (ret["status_code"] == 404)
+    return(NA)
+  ret <- tryCatch({httr::content(ret)},error = function(x) {return(NA)})
+  return(tryCatch({unlist(strsplit(ret, "\n"))},error = function(x) {return(NA)}))
+
+}
+
+############################################################################
+############################################################################
+PuInKtoIN<-function(getINK)
+{
+  url<- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getINK, "/JSON"))} ,error = function(x) {return(NA)})
+  prop.names  <-tryCatch({out$PC_Compounds$props[[1]][[1]]},error = function(x) {return(NA)})
+  prop.values <- tryCatch({out$PC_Compounds$props[[1]][[2]]},error = function(x) {return(NA)})
+  InchiVal=tryCatch({prop.values[13,"sval"]},error = function(x) {return(NA)})
+  return(tryCatch({InchiVal[1]},error = function(x) {return(NA)}))
+}
+###############################################################################
+################################################################################
+ConvINKtoOID<-function(getINK)
+{
+  ### ####This function return INCHIKEY to other identifiers like Inchi,Inchikey,Smiles,CompoundID
+  url<- "https://www.metabolomicsworkbench.org/rest/compound/inchi_key/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getINK, "/all"))}, error = function(x) {return(NA)})
+  ###########################
+  OIK<-tryCatch({out$inchi_key},error=function(cond){return(NA)})
+  OSM<-tryCatch({out$smiles},error=function(cond){return(NA)})
+  OCID<-tryCatch({out$pubchem_cid},error=function(cond){return(NA)})
+  OEM<-tryCatch({out$exactmass},error=function(cond){return(NA)})
+  OFOR<-tryCatch({out$formula},error=function(cond){return(NA)})
+  ###########################
+  return(c(tryCatch({OIK[1]},error = function(x) {return(NA)}),tryCatch({OSM[1]},error = function(x) {return(NA)}),tryCatch({OCID[1]},error = function(x) {return(NA)}),tryCatch({OEM[1]},error = function(x) {return(0)}),tryCatch({OFOR[1]},error = function(x) {return(NA)})))
+
+  ###########################
+}
+
+#############################################################################
+#############################################################################
+ConvINKtoOID1<-function(getINK)
+{
+  ################################
+  url<-"http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getINK, "/property/CanonicalSMILES,MonoisotopicMass,InChI,InChIKey"))}, error = function(x) {return(NA)})
+  #################################
+  OIK<-tryCatch({out$PropertyTable$Properties$InChIKey},error=function(cond){return(NA)})
+  OIN<-tryCatch({out$PropertyTable$Properties$InChI},error=function(cond){return(NA)})
+  OSM<-tryCatch({out$PropertyTable$Properties$CanonicalSMILES},error=function(cond){return(NA)})
+  OCID<-tryCatch({out$PropertyTable$Properties$CID},error=function(cond){return(NA)})
+  EXM<-tryCatch({out$PropertyTable$Properties$MonoisotopicMass},error=function(cond){return(0)})
+  #################################
+  return(c(tryCatch({OIN[1]},error = function(x) {return(NA)}),tryCatch({OIK[1]},error = function(x) {return(NA)}),tryCatch({OSM[1]},error = function(x) {return(NA)}),tryCatch({OCID[1]},error = function(x) {return(NA)}),tryCatch({EXM[1]},error = function(x) {return(0)})))
+  #################################
+}
+#############################################################################
+#############################################################################
+PuSmilesToEM<-function(getSMILES)
+{
+  For<-tryCatch({RChemMass::MolFormFromSmiles.rcdk(getSMILES)},error=function(cond){return(NA)})
+  EM<-tryCatch({Rdisop::getMolecule(For)},error=function(cond){return(NA)})
+  EM1<-tryCatch({EM$exactmass},error=function(cond){return(0)})
+  return(EM1)
+}
+###############################################################################
+###############################################################################
+MolFormFromSmiles.rcdk <- function(smiles) {
+
+  mol <- tryCatch({rcdk::parse.smiles(smiles)[[1]]},error=function(cond){return(NA)})
+  tryCatch({rcdk::convert.implicit.to.explicit(mol)},error=function(cond){return(NA)})
+  charge1 <- tryCatch({rcdk::get.total.charge(mol)},error=function(cond){return(NA)})
+  formula <- tryCatch({rcdk::get.mol2formula(mol, charge=charge1)},error=function(cond){return(NA)})
+  return(tryCatch({formula@string},error=function(cond){return(NA)}))
+}
+##############################################################################
+##############################################################################
+ClassSmilesToOntolgy<-function(getSMILE)
+{
+  ### ####This function return smiles to ontology
+  #####################
+  url="https://gnps-structure.ucsd.edu/classyfire?smiles="
+  url1=paste0(url,getSMILE)
+  out=tryCatch({jsonlite::fromJSON(url1)},error = function(x) {return(NA)})
+  res=do.call(paste, c(as.list(tryCatch({rev(out$ancestors)},error=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
+  ####################
+  return(res)
+  #####################
+}
+#############################################################################
+#############################################################################
+PuSMtoCID<-function(getSMILES)
+{
+  url<-"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getSMILES, "/cids"))} ,error = function(x) {return(NA)})
+  return(tryCatch({out[[1]]$CID},error = function(x) {return(NA)}))
+
+}
+
+#############################################################################
+#############################################################################
+PuSMItoINKandInchi<-function(getSMI)
+{
+  url<- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/SMILES/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getSMI, "/JSON"))} ,error = function(x) {return(NA)})
+  prop.names  <-tryCatch({out$PC_Compounds$props[[1]][[1]]},error = function(x) {return(NA)})
+  prop.values <- tryCatch({out$PC_Compounds$props[[1]][[2]]},error = function(x) {return(NA)})
+  InchiVal=tryCatch({prop.values[13,"sval"]},error = function(x) {return(NA)})
+  InchikeyVal=tryCatch({prop.values[14,"sval"]},error = function(x) {return(NA)})
+  return(c(InchiVal,InchikeyVal))
+}
+##############################################################################
+##############################################################################
+ConvSMItoOID1<-function(getSMI)
+{
+  url<-"http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getSMI,"/property/CanonicalSMILES,MonoisotopicMass,InChI,InChIKey"))},error = function(x) {return(NA)})
+  ########################
+  OIK<-tryCatch({out$PropertyTable$Properties$InChIKey},error=function(cond){return(NA)})
+  OIN<-tryCatch({out$PropertyTable$Properties$InChI},error=function(cond){return(NA)})
+  OSM<-tryCatch({out$PropertyTable$Properties$CanonicalSMILES},error=function(cond){return(NA)})
+  OCID<-tryCatch({out$PropertyTable$Properties$CID},error=function(cond){return(NA)})
+  EXM<-tryCatch({out$PropertyTable$Properties$MonoisotopicMass},error=function(cond){return(0)})
+  ########################
+  return(c(tryCatch({OIN[1]},error = function(x) {return(NA)}),tryCatch({OIK[1]},error = function(x) {return(NA)}),tryCatch({OSM[1]},error = function(x) {return(NA)}),tryCatch({OCID[1]},error = function(x) {return(NA)}),tryCatch({EXM[1]},error = function(x) {return(0)})))
+  ########################
+}
+##############################################################################
+##############################################################################
+ConvHMDBtoOCN<-function(getHMDB)
+{
+  url<- "https://www.metabolomicsworkbench.org/rest/compound/hmdb_id/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getHMDB, "/all"))}, error = function(x) {return(NA)})
+  #########################
+  #########################
+  OIK<-tryCatch({out$inchi_key},error=function(cond){return(NA)})
+  OSM<-tryCatch({out$smiles},error=function(cond){return(NA)})
+  OCID<-tryCatch({out$pubchem_cid},error=function(cond){return(NA)})
+  OEM<-tryCatch({out$exactmass},error=function(cond){return(NA)})
+  OFOR<-tryCatch({out$formula},error=function(cond){return(NA)})
+  return(c(OIK[1],OSM[1],OCID[1],OEM[1],OFOR[1]))
+  ############################
+  ############################
+}
+##############################################################################
+##############################################################################
+PuCIDtoEM<-function(getCID)
+{
+  #######################
+  #######################
+  URL="https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/"
+  URL1=paste0(URL,getCID, "/JSON/?response_type=display")
+  ############################
+  ########################
+  data=tryCatch({jsonlite::fromJSON(URL1)} ,error = function(x) {return(NA)})
+  ########################
+  data1<-tibble::enframe(unlist(data))
+  data2<-as.data.frame(data1)
+  ##########################
+  inVa<-tryCatch({which(data2$name %in% "Record.Section.Section.Section.Information.Value.StringWithMarkup.String")},error = function(x) {return(NA)})
+  ##########################
+  TEST<-tryCatch({sapply(data2, "[", inVa)},error = function(x) {return(NA)})
+  TEST1<-tryCatch({grep("InChI=",TEST)},error = function(x) {return(NA)})
+  TEST2<-tryCatch({TEST1[1]},error = function(x) {return(NA)})
+  InchI<-tryCatch({TEST[TEST2]},error = function(x) {return(NA)})
+  inchikey<-tryCatch({TEST[TEST2+1]},error = function(x) {return(NA)})
+  #########################
+  url<- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/"
+  #########################
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,inchikey, "/JSON"))},error = function(x) {return(NA)})
+  #########################
+  EMV<-tryCatch({out$PC_Compounds$props[[1]][22,]$value$sval},error = function(x) {return(NA)})
+  ########################
+  EMV1<-c()
+  ########################
+  if(!sjmisc::is_empty(EMV))
+  {
+    EMV1<-c(EMV1,EMV)
+  }else{
+    EMV1<-c(EMV1,0)
+  }
+  ########################
+  return(EMV1)
+  ########################
+  ########################
+}
+################################################################################
+##############################################################################
+PuCAStoOI<-function(getCAS)
+{
+  ###CAS: 328-50-7
+  getCAS1<-stringr::str_replace(getCAS,pattern='CAS:',replacement ="")
+  getCAS2<-stringr::str_trim(getCAS1)
+  ################################
+  url<- "http://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/"
+  out<-tryCatch({jsonlite::fromJSON(paste0(url,getCAS2, "/property/InChIKey"))}, error = function(x) {return(NA)})
+  out1<-tryCatch({jsonlite::fromJSON(paste0(url,getCAS2, "/property/CanonicalSMILES"))}, error = function(x) {return(NA)})
+  out2<-tryCatch({jsonlite::fromJSON(paste0(url,getCAS2, "/property/InChI"))}, error = function(x) {return(NA)})
+  #################################https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/
+  OIN<-tryCatch({out2$PropertyTable$Properties$InChI},error=function(cond){return(NA)})
+  OIK<-tryCatch({out$PropertyTable$Properties$InChIKey},error=function(cond){return(NA)})
+  OSM<-tryCatch({out1$PropertyTable$Properties$CanonicalSMILES},error=function(cond){return(NA)})
+  OCID<-tryCatch({out1$PropertyTable$Properties$CID},error=function(cond){return(NA)})
+  ################################
+  ################################
+  return(c(tryCatch({OIN[1]},error=function(cond){return(NA)}),tryCatch({OSM[1]},error=function(cond){return(NA)}),tryCatch({OCID[1]},error=function(cond){return(NA)})))
+}
+###############################################################################
+###############################################################################
+getOntoSM<-function(SM)
+{
+tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("smiles to ontology is failing")})
+ts<-tes1
+ts1<-unlist(strsplit(ts, ";"))
+ts2<-ts1[order(grepl("^O",ts1),ts1,decreasing =T)]
+ts3=ts2[grepl("^O",ts2)]
+t1s3<-ts3[order(grepl("^Organic compounds",ts3),ts3,decreasing =T)]
+ts4=ts2[!grepl("^O",ts2)]
+ts5=sort(ts4[!grepl("^[0-9]+",ts4)])
+ts6=ts4[grepl("^[0-9]+",ts4)]
+ts7=c(ts5,ts6)
+ts8=c(t1s3,ts7)
+ts9=paste(ts8, collapse = ";")
+tes2<-paste("Ontology:",ts9,sep=" ")
+return(tes2)
+}
+##############################################################################
+##############################################################################
+###print("this function remove the mz if it has no intensity value")
+PeakVali<-function(Fpea)
+{
+
+  PV1=c()
+  for(i in 1:length(Fpea))
+  {
+
+    PV=Fpea[i]
+
+    tes1<-unlist(strsplit(PV, "\t|\t\t|;|,"))
+
+
+    if(length(tes1)==2)
+    {
+
+
+      PV1=c(PV1,PV)
+    }
+
+  }
+
+
+  return(PV1)
+}
+
+###################################################################################
+###################################################################################
+
+###print("This is the peak centroiding function that I wrote")
+cenPeaks <- function(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE )
+{
+################################
+mzV1<-c(0,mzV)
+###########################
+###########################
+av<-abs(mzV[2:length(mzV)] - mzV[1:(length(mzV)-1)]) <= MZ_TOLERANCE
+###########################
+###########################
+Ntes2=mzV[which(!av)]
+Ntes3=intenV[which(!av)]
+###########################
+CVL=split(which(av), cumsum(c(1, diff(which(av)) != 1)))
+###########################
+###########################
+NMZV1=c()
+INDV1=c()
+############################
+TV=c()
+for(i in 1:length(CVL))
+{
+  LV=CVL[i]
+  LV1=purrr::flatten_dbl(LV)
+  LV2=tail(LV1,n=1)
+  LV3=LV2+1
+  NLV=unname(unlist(c(LV,LV3), recursive = FALSE))
+  TV=append(TV,NLV)
+  #############################
+  #############################
+  weightsV=intenV[NLV]
+  dataV=mzV[NLV]
+  weight_sum = sum(weightsV)
+  #######################################
+  #######################################
+
+  NDV=sum(dataV)/length(dataV)
+  NIV=sum(weightsV)/length(weightsV)
+
+  NMZV1=append(NMZV1,NDV)
+  INDV1=append(INDV1,NIV)
+
+
+}## end of for loop
+
+NCVLIN=seq(1,length(mzV))
+DIFFIN=setdiff(NCVLIN,TV)
+
+for(i in 1:length(DIFFIN))
+{
+  Val=DIFFIN[i]
+  weightsV=intenV[Val]
+  dataV=mzV[Val]
+
+  ##print(dataV)
+  NMZV1=append(NMZV1,dataV)
+  INDV1=append(INDV1,weightsV)
+
+}
+
+
+N1tes2=NMZV1
+N1tes3=INDV1
+
+
+N2tes2=N1tes2[order(N1tes2)]
+N2tes3=N1tes3[order(N1tes2)]
+
+N2tes4=N2tes2[!is.na(N2tes2)]
+N2tes5=N2tes3[!is.na(N2tes2)]
+
+return(list(N2tes4,as.numeric(N2tes5)))
+
+}
+
+
+
+Centroid<-function(Np,tes2,tes3,tes4,NTES,NTES4,NTES5,DEFAULT_MZ_TOLERANCE,Fpea2)
+{
+
+  out<-c()
+
+  if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
+  {
+
+   	NTES1<-c(NTES4,tes4)
+
+
+        if((Np >= 60) & (length(NTES1) > 1))
+  	{
+
+
+		tes5<-tes2[-NTES1]
+  		tes6<-tes3[-NTES1]
+
+  		mzV<-tes5
+  		intenV<-tes6
+
+
+
+  		if(length(mzV) > 1)
+  		{
+
+
+    			nMZV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
+    			nINV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
+    			tes7<-paste(nMZV,nINV,sep="\t")
+    			F1NPA<-paste0("Num Peaks: ",length(tes7))
+
+    			out<-c(out,F1NPA)
+    			out<-c(out,tes7)
+
+  		}else{
+
+    			tes5<-tes2
+    			tes6<-tes3
+
+    			nMZV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
+    			nINV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
+
+    			if(length(nMZV) > 1 & length(nINV) > 1)
+    			{
+
+      				tes7<-paste(nMZV,nINV,sep="\t")
+
+      				F1NPA<-paste0("Num Peaks: ",length(tes7))
+      				out<-c(out,F1NPA)
+      				out<-c(out,tes7)
+
+    			}else{
+
+    				tes7<-paste(tes5,tes6,sep="\t")
+    				F1NPA<-paste0("Num Peaks: ",length(tes7))
+    				out<-c(out,F1NPA)
+    				out<-c(out,tes7)
+    			}## end of if else
+
+  			}###end of else
+
+
+
+  		}else{
+
+
+
+
+			if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
+  			{
+    				tes5<-tes2[-NTES]
+    				tes6<-tes3[-NTES]
+    				tes7<-paste(tes5,tes6,sep="\t")
+    				F1NPA<-paste0("Num Peaks: ",length(tes7))
+    				out<-c(out,F1NPA)
+    				out<-c(out,tes7)
+
+  			}else{
+
+    				tes7<-paste(tes2,tes3,sep="\t")
+				F1NPA<-paste0("Num Peaks: ",length(tes7))
+    				out<-c(out,F1NPA)
+    				out<-c(out,tes7)
+
+  			}## end of if else loop
+
+  			}### end of the else
+
+
+
+
+
+		  }else{
+
+		  if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
+                  {
+			  if(length(tes2[-NTES]) > 1)
+    			  {
+
+      				tes5<-tes2[-NTES]
+      				tes6<-tes3[-NTES]
+      				tes7<-paste(tes5,tes6,sep="\t")
+      				### Adding this new here
+      				F1NPA<-paste0("Num Peaks: ",length(tes7))
+      				out<-c(out,F1NPA)
+      				#############################
+      				out<-c(out,tes7)
+      				##############################
+    			 }else{
+
+      				tes5<-tes2
+      				tes6<-tes3
+      				tes7<-paste(tes5,tes6,sep="\t")
+      				F1NPA<-paste0("Num Peaks: ",length(tes7))
+      				out<-c(out,F1NPA)
+      				out<-c(out,tes7)
+
+    			}### if,else loop
+                    ############################
+		    ############################
+                  }else{
+
+			  ##if((Np >= 80))
+			  if((Np >= 60))
+			  {
+				  mzV<-tes2
+				  intenV<-tes3
+
+				  nMZV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]
+				  nINV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]
+
+				  tes7<-paste(nMZV,nINV,sep="\t")
+				  F1NPA<-paste0("Num Peaks: ",length(tes7))
+
+				  out<-c(out,F1NPA)
+				  out<-c(out,tes7)
+
+			  }else{
+
+		             	########################
+		    		F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
+	            		out<-c(out,F1NPA)
+	            		out<-c(out,Fpea2)
+		    		########################
+
+
+                     	}## end of Np >= 80 and else
+                 	############################
+
+                  }### end of else
+
+
+		  }
+
+
+  return(list(out[1],out[2:length(out)]))
+}
+
 ##########################################################################
-##print("coming to area before Ontology")
-##########################################################################
-#MaKE.ONT.REC<-function(InMEDA)
-#{
-#  out<-c()
-#  ################
-#   print("entering the ontology area")
-#   ###############
-#  if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI="))
-#  {
-#    ###################################
-#    print("enter the line 6")
-#    ###################################
-#    IN<-as.character(InMEDA[["InChI"]])
-#    mol <-tryCatch({rinchi::parse.inchi(IN)},error=function(cond){message("name is empty")})
-#    SM<-tryCatch({rcdk::get.smiles(mol[[1]])},error=function(cond){message("name is empty")})
-#    IK<-tryCatch({rinchi::get.inchi.key(SM)},error=function(cond){message("name is empty")})
-#    IK1<-paste("INCHIKEY:",IK,sep=" ")
-#    ############################
-#    if(!sjmisc::is_empty(IK)){
-#	    ##################
-#	    print("enter the line 8")
-#      ##########################
-#      IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
-#      if(!sjmisc::is_empty(IKCRV)){
-#      ##IKCRV<-tryCatch({classyfireR::get_classification(IK)},warning=function(cond){message("Classifier could not fecth the information")})
-#      ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#      ##########################
-#      IK1<-paste("INCHIKEY:",IK,sep=" ")
-#      tes2<-paste("Ontology:",ONTV,sep=" ")
-#      FINCH<-paste("INCHI:",IN,sep=" ")
-#      #################
-#      out<-c(out,tes2)
-#      out<-c(out,IK1)
-#      out<-c(out,FINCH)
-#      ########################
-#      }else{
-#	       IK1<-paste("INCHIKEY:",IK,sep=" ")
-#               tes2<-paste("Ontology:","",sep=" ")
-#               FINCH<-paste("INCHI:",IN,sep=" ")
-#	       ################
-#	       out<-c(out,tes2)
-#	       out<-c(out,IK1)
-#	       out<-c(out,FINCH)
-#
-#      }
-#   ####################################################################
-#    }else if(!sjmisc::is_empty(SM))
-#    {
-#      ##########################################################
-#      tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = SM, type = 'STRUCTURE')},warning=function(cond){message("Classyfire is empty")})
-#      tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#      ###########################################################
-#      ##IK<-tryCatch({rinchi::get.inchi.key(SM)},warning=function(cond){message("rinchi is not able to fecth")})
-#      ##########################################################
-#      IK1<-paste("INCHIKEY:",IK,sep=" ")
-#      tes2<-paste("Ontology:",tes1,sep=" ")
-#      FINCH<-paste("INCHI:",IN,sep=" ")
-#      ########################
-#      out<-c(out,tes2)
-#      out<-c(out,IK1)
-#      out<-c(out,FINCH)
-#      ########################
-#    }else{
-#      ############################################
-#      F1ONT<-paste("Ontology:","",sep=" ")
-#      FINCH<-paste("INCHI:",SM,sep=" ")
-#      ##############################################
-#      if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-#        FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-#        IK<-paste("INCHIKEY:","",sep=" ")
-#        ##################
-#        out<-c(out,F1ONT)
-#        out<-c(out,IK)
-#        out<-c(out,FINCH)
-#        #################
-#      }else{
-#	###################################
-#        FINCH<-paste("INCHI:","",sep=" ")
-#        IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-#        ###############
-#        out<-c(out,F1ONT)
-#        out<-c(out,IK)
-#        out<-c(out,FINCH)
-#        ####################
-#      }
-#      #################
-#    }
-##################################################################################################################
-###  ##}else if(!is.na(as.character(RRV[["InChI"]])) & startsWith(as.character(RRV[["InChI"]]),'CAS:')){
-###	  cai<-as.character(RRV[["InChI"]])
-###	  cai1<-stringr::str_trim(gsub("CAS:","",cai))
-###	  tes<-tryCatch({webchem::cir_query(cai1, "smiles")},warning=function(cond){message("some mistake happened in file search files")})
-###	  tes1<-tryCatch({tes[[1]]},warning=function(cond){message("some mistake happened in file search files")})
-###	  IK<-tryCatch({rinchi::get.inchi.key(tes1)},warning=function(cond){message("rinchi could not fetch missing")})
-###	  IN<-tryCatch({rinchi::get.inchi(tes1)},warning=function(cond){message("rinchi could not fetch missing")})
-### ## }
-######################################################################################################################
-#  }else if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]]))){
-#    ############################
-#    print("enter the line ...53")
-#    print(as.character(InMEDA[["InChI"]]))
-#    ############################
-#    if(tryCatch({webchem::is.inchikey(as.character(InMEDA[["InChI"]]))},warning=function(cond){message("inchikey validation failed")}))
-#    {
-#      print("enter the line 55")
-#      #######################################
-#      tes<-tryCatch({webchem::get_cid(stringr::str_trim(as.character(InMEDA[["InChI"]])), from = "inchikey")},error=function(cond){message("webchem not able to get cid from Inchi")})
-#      tes1<-tryCatch({tes$cid},error=function(cond){message("Inchi to CID did not convert")})
-#      tes2<-tryCatch({webchem::pc_prop(as.numeric(tes1), properties = c("MolecularFormula", "MolecularWeight","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Inchi to CID did not convert so did not get properties")})
-#      IN<-tryCatch({tes2$InChI},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")})
-#      #######################################
-#      #######################################
-#      FINCH<-paste("INCHI:",IN,sep=" ")
-#      #####################################
-#      teIK1<-as.character(InMEDA[["InChI"]])
-#      IK1<-paste("INCHIKEY:",teIK1,sep=" ")
-#      ###################################
-#      if(!sjmisc::is_empty(teIK1)){
-#        #####################################
-#        print("enter the line ...57")		
-#        ########################################
-#	IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(teIK1)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
-#        if(!sjmisc::is_empty(IKCRV)){
-#	##############################
-#        ##IKCRV<-tryCatch({classyfireR::get_classification(teIK1)},warning=function(cond){message("Classifier could not fecth the information")})
-#        ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#        ####################################
-#        ####################################
-#        tes2<-paste("Ontology:",ONTV,sep=" ")
-#        #####################################
-#        out<-c(out,tes2)
-#        out<-c(out,IK1)
-#        out<-c(out,FINCH)
-#        ####################
-#	}else{
-#		##############################
-#		IK1<-paste("INCHIKEY:",teIK1,sep=" ")
-#		tes2<-paste("Ontology:","",sep=" ")
-#		FINCH<-paste("INCHI:",IN,sep=" ")
-#		#############################
-#		out<-c(out,tes2)
-#		out<-c(out,IK1)
-#		out<-c(out,FINCH)
-#		##############################
-#	}
-#        ##print(out)
-#        ####################################
-#      }else{
-#        ####################################
-#        print("enter the line ...89")
-#        ################################	
-#        SMV<-tryCatch({PuInKtoSM(teIK1)},error=function(cond){message("Pubchem fetch is empty")})
-#        IK<-tryCatch({rinchi::get.inchi.key(SMV)},error=function(cond){message("rinchi did not get inchi key")})
-#        IV<-tryCatch({rinchi::get.inchi(SMV)},error=function(cond){message("rinchi did not get inchi")})
-#        FINCH<-paste("INCHI:",IV,sep=" ")
-#        IK1<-paste("INCHIKEY:",IK,sep=" ")
-#        ###################################
-#        if(!sjmisc::is_empty(IK)){
-#          #################################
-#	  IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
-#	  if(!sjmisc::is_empty(IKCRV)){
-#		  #############################
-#		  print("enter the line ...91")
-#		  ##############################
-#          ##IKCRV<-tryCatch({classyfireR::get_classification(IK)},warning=function(cond){message("Classifier could not fecth the information")})
-#          ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#          ####################################
-#          ##IK1<-paste("INCHIKEY:",IK,sep=" ")
-#          tes2<-paste("Ontology:",ONTV,sep=" ")
-#          ####################################
-#          out<-c(out,tes2)
-#          out<-c(out,IK1)
-#          out<-c(out,FINCH)
-#	  #####################################
-#	  }else{
-#		  ####################################
-#		  IK1<-paste("INCHIKEY:",IK,sep=" ")
-#		  tes2<-paste("Ontology:","",sep=" ")
-#		  FINCH<-paste("INCHI:",IV,sep=" ")
-#		  ######################################
-#		  out<-c(out,tes2)
-#		  out<-c(out,IK1)
-#		  out<-c(out,FINCH)
-#		  #####################################
-#	  }
-#        #####################################################
-#        }else if(!sjmisc::is_empty(SMV)){
-#		print("enter the line 95")
-#	  ##########################################################	
-#          tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = SMV, type = 'STRUCTURE')},warning=function(cond){message("Classyfire is empty")})
-#          tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#          ###########################################################
-#          IK<-tryCatch({rinchi::get.inchi.key(SMV)},error=function(cond){message("rinchi is not able to fecth")})
-#          IK1<-paste("INCHIKEY:",IK,sep=" ")
-#          tes2<-paste("Ontology:",tes1,sep=" ")
-#          ########################
-#          out<-c(out,tes2)
-#          out<-c(out,IK1)
-#          out<-c(out,FINCH)
-#	  #######################
-#        }else{
-#          F1ONT<-paste("Ontology:","",sep=" ")
-#          if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]]))& startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-#	    ####################################
-#            FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-#            IK<-paste("INCHIKEY:","",sep=" ")
-#            ###############
-#            out<-c(out,F1ONT)
-#            out<-c(out,IK)
-#            out<-c(out,FINCH)
-#            ###############
-#          }else{
-#            ##################################
-#            FINCH<-paste("INCHI:","",sep=" ")
-#            IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-#            ###############
-#            out<-c(out,F1ONT)
-#            out<-c(out,IK)
-#            out<-c(out,FINCH)
-#            ####################
-#          }
-#        }
-#      }
-#    }else{
-#      ###################################################
-#      F1ONT<-paste("Ontology:","",sep=" ")
-#      if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-#	################################
-#        FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-#        IK<-paste("INCHIKEY:","",sep=" ")
-#        ###############
-#        out<-c(out,F1ONT)
-#        out<-c(out,IK)
-#        out<-c(out,FINCH)
-#        ###############
-#      }else{
-#	####################################
-#        FINCH<-paste("INCHI:","",sep=" ")
-#        IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-#        ###############
-#        out<-c(out,F1ONT)
-#        out<-c(out,IK)
-#        out<-c(out,FINCH)
-#        ####################
-#      }
-#    }
-#  ################################################  
-#    
-#
-#
-#  }else{
-#    #######################################
-#    print("entering this line...174")
-#  ##########################################
-#    PCID<- as.character(InMEDA[["PubChem CID"]])
-#    PCSM<- as.character(InMEDA[["SMILES"]])
-#    if(!sjmisc::is_empty(PCID))
-#    {
-#      #######################################
-#      PCID1<-as.numeric(PCID)
-#      tes<-tryCatch({webchem::pc_prop(PCID1, properties = c("MolecularFormula", "MolecularWeight","CanonicalSMILES","InChI","InChIKey"))},warning=function(cond){message("Did not get properties from Pubchem CID")})
-#      gSMI<-tryCatch({tes$CanonicalSMILES},error=function(cond){message("smiles is not found")})
-#      IK<-tryCatch({tes$InChIKey},error=function(cond){message("some mistake happened in file search files")})
-#      IN<-tryCatch({tes$InChI},error=function(cond){message("some mistake happened in file search files")})
-#      IK1<-paste("INCHIKEY:",IK,sep=" ")
-#      #########################################################################
-#      #########################################################################
-#      if(!sjmisc::is_empty(IK)){
-#      ###############################
-#	IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
-#        if(!sjmisc::is_empty(IKCRV)){
-#        ##IKCRV<-tryCatch({classyfireR::get_classification(IK)},warning=function(cond){message("Classifier could not fecth the information")})
-#        ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#        ##################################
-#        IK1<-paste("INCHIKEY:",IK,sep=" ")
-#        tes2<-paste("Ontology:",ONTV,sep=" ")
-#        ##teIK2<-tryCatch({webchem::cs_convert(IK,from="inchikey",to="inchi")},error=function(cond){message("webchecm could not fetch the info")})
-#        FINCH<-paste("INCHI:",IN,sep=" ")
-#        ###################################
-#        out<-c(out,tes2)
-#        out<-c(out,IK1)
-#        out<-c(out,FINCH)
-#	################################
-#	}else{
-#		IK1<-paste("INCHIKEY:",IK,sep=" ")
-#		tes2<-paste("Ontology:","",sep=" ")
-#		FINCH<-paste("INCHI:",IN,sep=" ")
-#		out<-c(out,tes2)
-#		out<-c(out,IK1)
-#		out<-c(out,FINCH)
-#	}
-#
-#        #################################
-#      }else if(!sjmisc::is_empty(gSMI)){
-#	      ##################################
-#	      print("enter the line 184")
-#        ##################################################
-#        tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = gSMI, type = 'STRUCTURE')},warning=function(cond){message("adduct value is missing")})
-#        tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#        ################################################
-#        tes2<-paste("Ontology:",tes1,sep=" ")
-#        ##teIK2<-tryCatch({webchem::cs_convert(IK,from="inchikey",to="inchi")},error=function(cond){message("webchecm could not fetch the info")})
-#        FINCH<-paste("INCHI:",IN,sep=" ")
-#        ##################
-#        out<-c(out,tes2)
-#        out<-c(out,IK1)
-#        out<-c(out,FINCH)
-#        #################
-#      }else{
-#        F1ONT<-paste("Ontology:","",sep=" ")
-#        if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-#	  #########################################
-#          FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-#          IK<-paste("INCHIKEY:","",sep=" ")
-#          #################
-#          out<-c(out,F1ONT)
-#          out<-c(out,IK)
-#          out<-c(out,FINCH)
-#          ################
-#        }else{
-#          FINCH<-paste("INCHI:","",sep=" ")
-#          IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-#          #################
-#          out<-c(out,F1ONT)
-#          out<-c(out,IK)
-#          out<-c(out,FINCH)
-#          ####################
-#        }
-#      }
-#    }else{
-#      #############################################
-#	    print("enter the line 194")
-#	    ##########################################
-#      SMV<-as.character(InMEDA[["SMILES"]])
-#      #############################################
-#      if(!sjmisc::is_empty(SMV)){
-#	############################################      
-#        IK<-tryCatch({rinchi::get.inchi.key(SMV)},error=function(cond){message("rinchi could not fetch inchikey missing")})
-#        SMV1<-tryCatch({rinchi::get.inchi(SMV)},error=function(cond){message("rinchi could not fetch inchi missing")})
-#        IK1<-paste("INCHIKEY:",IK,sep=" ")
-#        FINCH<-paste("INCHI:",SMV1,sep=" ")
-#        ###################################
-#        if(!sjmisc::is_empty(IK)){
-#          ######################################
-#	  IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
-#          if(!sjmisc::is_empty(IKCRV)){
-#          ##IKCRV<-tryCatch({classyfireR::get_classification(IK)},warning=function(cond){message("Classifier could not fecth the information")})
-#          ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#          #############################
-#          IK1<-paste("INCHIKEY:",IK,sep=" ")
-#          tes2<-paste("Ontology:",ONTV,sep=" ")
-#          ############################
-#          out<-c(out,tes2)
-#          out<-c(out,IK1)
-#          out<-c(out,FINCH)
-#	  #########################
-#	  }else{
-#		  IK1<-paste("INCHIKEY:",IK,sep=" ")
-#		  tes2<-paste("Ontology:","",sep=" ")
-#		  ##FINCH<-paste("INCHI:",IN,sep=" ")
-#		  FINCH<-paste("INCHI:",SMV1,sep=" ")
-#		  ################################
-#		  out<-c(out,tes2)
-#		  out<-c(out,IK1)
-#		  out<-c(out,FINCH)
-#	  }
-#          ############################
-#        }else if(!sjmisc::is_empty(SMV)){
-#          ###############################
-#          ##F1ONT<-paste("Ontology:","",sep=" ")
-#          ###############################
-#          tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = SMV, type = 'STRUCTURE')},warning=function(cond){message("Classfire not able to fetch empty")})
-#          tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-#          tes2<-paste("Ontology:",tes1,sep=" ")
-#          teIK2<-tryCatch({webchem::cs_convert(IK,from="inchikey",to="inchi")},error=function(cond){message("webchecm could not fetch the info")})
-#          FINCH<-paste("INCHI:",teIK2,sep=" ")
-#          ########################
-#          out<-c(out,tes2)
-#          out<-c(out,IK1)
-#          out<-c(out,FINCH)
-#          ##################
-#        }
-#      }else{
-#        ##############################################
-#        F1ONT<-paste("Ontology:","",sep=" ")
-#        if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-#          FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-#          IK<-paste("INCHIKEY:","",sep=" ")
-#          ###############
-#          out<-c(out,F1ONT)
-#          out<-c(out,IK)
-#          out<-c(out,FINCH)
-#          ###############
-#        }else{
-#          FINCH<-paste("INCHI:","",sep=" ")
-#          IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-#          ###############
-#          out<-c(out,F1ONT)
-#          out<-c(out,IK)
-#          out<-c(out,FINCH)
-#          ####################
-#        }
-#      }
-#    }
-#  }
-#  return(out)
-#}
-#
-##########################################################################################
-##########################################################################################
+FuFtoRe<-function(InMEDA)
+{
+  ####This function returns exact mass given the Name of the compound
+  if(!sjmisc::is_empty(as.character(InMEDA[["Name"]])) & !startsWith(as.character(InMEDA[["Name"]]),'not available')){
+    getNAME<-stringr::str_trim(as.character(InMEDA[["Name"]]))
+    GCID<-tryCatch({webchem::get_cid(InMEDA[["Name"]])},error=function(cond){return(NA)})
+    GCID1<-tryCatch({GCID[[2]][1]},error=function(cond){message("Name value is empty")})
+    #####G1CID1<-stringr::str_trim(GCID1)
+    G1CID1<-stringr::str_trim(gsub("[[:punct:]]", "",GCID1))
+    PCID1<-tryCatch({webchem::pc_prop(as.numeric(G1CID1), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){return(NA)})
+    PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){return(NA)})
+    ############################
+    FMa<-c()
+    ############################
+    if(!sjmisc::is_empty(PCID2)){
+      FMa<-c(FMa,PCID2)
+    }else{
+      EMV<-tryCatch({PuNAMEtoOI(getNAME)},error = function(x) {return(NA)})
+      if(!sjmisc::is_empty(EMV)){
+        FMa<-c(FMa,EMV[5])
+      }else{
+        if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
+          EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem CId is empty")})
+          EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
+          if(!sjmisc::is_empty(EM1)){
+            FMa<-c(FMa,EM1)
+          }else{
+            EM<-stringr::str_trim(as.character(InMEDA[["Exact mass"]]))
+            if(!sjmisc::is_empty(EM)){
+              FMa<-c(FMa,EM)
+            }else{
+              FMa<-c(FMa,0)
+            }
+          }###end of else
+        }##end of ifloop
+      }
+    }###end of else PCID2
+
+}else{
+  if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
+    EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem CId value is empty")})
+    EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CId is value1 empty")})
+    if(!sjmisc::is_empty(EM1)){
+      FMa<-c(FMa,EM1)
+    }else{
+      EM<-stringr::str_trim(as.character(InMEDA[["Exact mass"]]))
+      if(!sjmisc::is_empty(EM)){
+        FMa<-c(FMa,EM)
+      }else{
+        FMa<-c(FMa,0)
+      }
+    }###end of else
+  }##end of ifloop
+}
+  return(FMa)
+}
+#########################################################################################
+#########################################################################################
+CONcidtoEM<-function(InMEDA)
+{
+  #################################
+  FMa<-c()
+  ################################
+if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
+  ########################################
+  ##FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+  FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
+  ########################################
+  PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CId is empty..did not get exact mass")})
+  PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})
+  ######################################
+  ######################################
+  if(!sjmisc::is_empty(PCID2)){
+    ############################################
+    print("entering the if loop..Pubchem CID")
+    ###########################################
+    FMa<-c(FMa,PCID2)
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available') & tryCatch({ConvCIDtoOID1(INMEDA[["PubChem CID"]])[5]},error = function(x) {return(NA)}) != 0){
+    PCID2<-tryCatch({ConvCIDtoOID1(INMEDA[["PubChem CID"]])[5]},error = function(x) {return(NA)})
+    FMa<-c(FMa,PCID2)
+    ######################################
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available') & tryCatch({ConvPCIDtoOCN(INMEDA[["PubChem CID"]])[4]},error=function(cond){return(NA)}) != 0){
+    PCID2<-tryCatch({ConvPCIDtoOCN(INMEDA[["PubChem CID"]])[4]},error=function(cond){return(NA)})
+    FMa<-c(FMa,PCID2)
+  }else{
+    ### PubchemId is not found ..entering the else loop
+    if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+      ############################################
+      ############################################
+      EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
+      EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
+      ############################################
+      ############################################
+      if(!sjmisc::is_empty(EM1)){
+        FMa<-c(FMa,EM1)
+      }else{
+        #############################
+        PMA<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("NAME to exact mass...FuFtoRe")})
+        FMa<-c(FMa,PMA)
+        #############################
+      }###end of else
+    }else{
+      PMA<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("NAME to exact mass...FuFtoRe")})
+      FMa<-c(FMa,PMA)
+    }
+  }##end of else
+}else{
+  if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+    ############################################
+    ############################################
+    EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem CId is empty")})
+    EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
+    ############################################
+    ############################################
+    if(!sjmisc::is_empty(EM1)){
+      FMa<-c(FMa,EM1)
+    }else{
+      #############################
+      PMA<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("FUFtoRe value is empty...1")})
+      FMa<-c(FMa,PMA)
+      #############################
+    }###end of else
+  }else{
+    PMA<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("FUFtoRe value is empty...2")})
+    FMa<-c(FMa,PMA)
+  }
+}###end of else
+  #################################
+  return(FMa)
+  ################################
+}
+##############################################################################
+##############################################################################
+CONSMItoEM<-function(InMEDA)
+{
+  ###############################
+  FMa<-c()
+  ###############################
+if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
+  ######################################
+  print("entering smiles area in InchiKey")
+  ######################################
+  IK<-as.character(InMEDA[["SMILES"]])
+  #######################################
+  tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
+  tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
+  tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
+  PCID2<-tryCatch({tes2},error=function(cond){message("smiles not abe to fetch")})
+  #######################################
+  #######################################
+  if(!sjmisc::is_empty(PCID2)){
+    FMa<-c(FMa,PCID2)
+  }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available') & !sjmisc::is_empty(tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)}))){
+     print("entering the smiles pass in CONSMItoEM")
+    PCID2<-ifelse(!sjmisc::is_empty(tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)})),tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)}),tryCatch({mzAnnotation::smileToAccurateMass(as.character(InMEDA[["SMILES"]]))}, error = function(x) {return(0)}))
+    ##PCID2<-tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)})
+    FMa<-c(FMa,PCID2)
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
+    PCID2<-tryCatch({CONcidtoEM(InMEDA)},error=function(cond){message("Pubchem CID to exact mass failed")})
+    FMa<-c(FMa,PCID2)
+  }else{
+    PMA<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("NAME to exact mass failed")})
+    FMa<-c(FMa,PMA)
+  }
+}else{
+  ### Smiles not found
+  PCID2<-tryCatch({CONcidtoEM(InMEDA)},error=function(cond){message("pubchem CID to exact mass failed")})
+  FMa<-c(FMa,PCID2)
+}
+  ############################
+  return(FMa)
+  ############################
+}
+#############################################################################
+#############################################################################
+getOntFromSMI<-function(IK,InMEDA)
+{
+  out<-c()
+  if(!sjmisc::is_empty(IK)){
+  ##################################
+  IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+  ####################################
+  if(!sjmisc::is_empty(IKCRV)){
+    ####################
+    ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
+    ##################################
+    IK1<-paste("INCHIKEY:",IK,sep=" ")
+    tes2<-paste("Ontology:",ONTV,sep=" ")
+    FINCH<-paste("INCHI:",tryCatch({PuInKtoIN(IK)},error = function(x) {return(NA)}),sep=" ")
+    #################################
+    out<-c(out,tes2)
+    out<-c(out,IK1)
+    out<-c(out,FINCH)
+    #########################
+  }else{
+    SM<-tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)})
+    IN<-paste("INCHI:",tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}),sep=" ")
+    IK<-paste("INCHIKEY:",tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}) ,sep=" ")
+    tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("Classyfire smiles to Ontology empty")})
+    #####################################
+    tes2<-getOntoSM(SM)
+    ######################################
+    out<-c(out,tes2)
+    out<-c(out,IK)
+    out<-c(out,IN)
+  }
+  }
+  return(out)
+}
+#########################################################################
+#########################################################################
+###  This is a function that will select Inchi or INCHIKEY value
+#########################################################################
+SelectInchiorInchiKey<-function(InMEDA,IK,InchiV)
+{
+  out<-c()
+if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
+  if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
+    FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
+    FINCH<-paste("INCHI:",InchiV,sep=" ")
+    out<-c(out,FINK)
+    out<-c(out,FINCH)
+  }else{
+    FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+    FINCH<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHI:",as.character(InMEDA[["InChI"]])),paste("INCHI:",InchiV,sep=" "))
+    out<-c(out,FINK)
+    out<-c(out,FINCH)
+  }
+}else{
+  ####print("enter the else value")
+  FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+  out<-c(out,FINK)
+  FINCH<-paste("INCHI:",InchiV,sep=" ")
+  out<-c(out,FINCH)
+
+}
+  return(out)
+}
+########################################################################
+########################################################################
+CONcastoEM<-function(InMEDA)
+{
+  ########################
+  FMa<-c()
+  ######################
+if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
+  ##############################################
+  print("enter the Inchi/CAS part ...in loop...CAS area")
+  ###############################################
+  CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+  CV1<-stringr::str_replace(CV,pattern='CAS:',replacement ="")
+  CV2<-stringr::str_trim(as.character(CV1))
+  SM<-tryCatch({webchem::cir_query(CV2, "smiles")[[2]]},error=function(cond){message("CAS not abe to fetch smiles")})
+  EMS<-tryCatch({mzAnnotation::smileToAccurateMass(SM)}, error = function(x) {return(NA)})
+  #############################################
+  PCID<-tryCatch({webchem::get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){message("Pubchem Id is empty")})
+  ##########################################
+  ##########################################
+  PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID[[2]][1]), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Pubchem CID is empty")})
+  PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem CID is empty")})
+  #############################################
+  print("smiles to exact mass value")
+  prit(EMS)
+  #############################################
+  if(!sjmisc::is_empty(PCID2)){
+    ###########################################
+    print("enter the if loop ...cas area")
+    ########################################
+    FMa<-c(FMa,PCID2)
+  }else if(!sjmisc::is_empty(EMS)){
+	  #######################################################
+	  print("entering else if smile to exact value is there")
+	  #######################################################
+	  FMa<-c(FMa,EMS)
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !sjmisc::is_empty(tryCatch({PuCAStoOI(CV2)[5]}, error = function(x) {return(0)}))){
+    ############################################################
+    print("Enter the else if loop INCHI/CAS value is avilable")
+    ##############################################################
+    PCID2<-tryCatch({PuCAStoOI(InMEDA[["InChI"]])[5]}, error = function(x) {return(0)})
+    FMa<-c(FMa,PCID2)
+  }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
+    ######################################
+    print("entering smiles avilable area in InchiKey/CAS pass area")
+    ######################################
+    IK<-as.character(InMEDA[["SMILES"]])
+    #######################################
+    tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
+    tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
+    tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
+    PCID2<-tryCatch({tes2},error=function(cond){message("smiles not abe to fetch")})
+    #######################################
+    #######################################
+    if(!sjmisc::is_empty(PCID2)){
+      FMa<-c(FMa,PCID2)
+    }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
+	########################################################################
+        print("entering the else if loop ... Inchi/CAS part...smiles avilable")
+        ########################################################################
+      PCID2<-ifelse(!sjmisc::is_empty(tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)})),tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)}),tryCatch({PuSmilesToEM(InMEDA[["SMILES"]])}, error = function(x) {return(0)}))
+      FMa<-c(FMa,PCID2)
+    }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
+      PCID2<-tryCatch({CCONcidtoEM(InMEDA)},error=function(cond){message("CID not abe to fetch")})
+      FMa<-c(FMa,PCID2)
+    }else{
+	    ############################################################
+	    print("enter the else part ...CAS to exact mass ..smiles")
+	    ############################################################
+            PMA<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("smiles not abe to fetch")})
+            FMa<-c(FMa,PMA)
+    }
+  }else{
+    ###########################################################
+    print("smiles is not avilable..CAS to exact mass..")
+    ###########################################################
+    PCID2<-tryCatch({CONcidtoEM(InMEDA)},error=function(cond){message("CID is not able to convert exact mass")})
+    FMa<-c(FMa,PMA)
+  }
+}else{
+  #######################################################
+  print("CAS not found.... CAS to exact mass...")
+  #######################################################
+  PCID2<-tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("convert smiles to exact mass failing")})
+  FMa<-c(FMa,PCID2)
+}
+  ###################
+  return(FMa)
+  ###################
+}
+##############################################################################
+##############################################################################
+CONinctoEM<-function(InMEDA)
+{
+  #########################
+  FMa<-c()
+  ##########################
+if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
+  ##############################################
+  print("enter the Inchi part ...in else loop...Inchikey")
+  IK<-as.character(InMEDA[["InChI"]])
+  ##############################################
+  IK1<-tryCatch({webchem::get_cid(IK, from = "inchi")},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
+  PCID<-tryCatch({IK1[[2]][1]},error=function(cond){return(NA)})
+  #######################################
+  #######################################
+  #########PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
+  #######################################
+  #######################################
+  PCID1<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID))), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){return(NA)})
+  PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){return(NA)})
+  ###################################
+  if(!sjmisc::is_empty(PCID2)){
+    ###########################################
+    print("enter the if loop ...inchi area")
+    ###########################################
+    FMa<-c(FMa,PCID2)
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
+    ##############################################
+    print("enter the Inchi part ...in else loop...CAS area")
+    ###############################################
+    CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+    CV1<-stringr::str_replace(CV,pattern='CAS:',replacement ="")
+    CV2<-stringr::str_trim(as.character(CV1))
+    #############################################
+    PCID<-tryCatch({webchem::get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){message("Pubchem Id is empty")})
+    ##########################################
+    ##########################################
+    PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID[[2]][1]), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Pubchem CID is empty")})
+    #############################################
+    ##############################################
+    FPUCID1<-tryCatch({as.numeric(PCID[[2]][1])},error=function(cond){message("Pubchem CID is empty")})
+    PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+    #############################################
+    #############################################
+    if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+      ########################################
+      print("enter the if loop ...cas area")
+      ########################################
+      FMa<-c(FMa,PCID2)
+    }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
+      ######################################
+      PCID2<-tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("convert smiles to exact mass is empty")})
+      FMa<-c(FMa,PCID2)
+     }else{
+      #####################################
+       PCID2<-tryCatch({CONcidtoEM(InMEDA)},error=function(cond){message("convert cid to exact mass is empty")})
+       FMa<-c(FMa,PCID2)
+    ##################################
+    } ##end if loop Pubchem CID
+  #####################################
+  }else{
+    PMA<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("FuFtoRe exact mass is empty..3")})
+    FMa<-c(FMa,PMA)
+  }
+}else{
+  PCID2<-tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("convert smiles to exact mass is empty")})
+  FMa<-c(FMa,PCID2)
+}
+  ############################
+  return(FMa)
+  #############################
+}
+##############################################################################
+##############################################################################
+CONinktoEM<-function(InMEDA)
+{
+  #########################
+  FMa<-c()
+  ##########################
+if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
+    #######################################################################
+  if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
+    ########################################################################
+    print("enter the Inchi key AREA..inchikey value is not empty")
+    ########################################################################
+    IK<-as.character(InMEDA[["InChI"]])
+    ######################
+    ######################
+    IK1<-tryCatch({webchem::get_cid(IK, from = "inchikey")},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
+    PCID<-tryCatch({IK1[[2]][1]},error=function(cond){message("Pubchem Id is empty")})
+    #########################################################################
+    PCID1<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID))), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
+    #########################################################################
+    ##########################################################################
+    PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
+    ##########################################################################
+    ##########################################################################
+    if(!sjmisc::is_empty(PCID2))
+    {
+      #####################################
+      print("enter the if loop...inkikey")
+      #####################################
+      FMa<-c(FMa,PCID2)
+    }else{
+
+      if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")}) & tryCatch({ConvINKtoOID(InMEDA[["InChI"]])[4]}, error = function(x) {return(0)}) != 0){
+        PCID2<-tryCatch({ConvINKtoOID(InMEDA[["InChI"]])[4]}, error = function(x) {return(0)})
+        FMa<-c(FMa,PCID2)
+        }else if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")}) & tryCatch({ConvINKtoOID1(InMEDA[["InChI"]])[5]}, error = function(x) {return(0)})){
+        PCID2<-tryCatch({ConvINKtoOID1(InMEDA[["InChI"]])[5]}, error = function(x) {return(0)})
+        FMa<-c(FMa,PCID2)
+        }else{
+          PCID2<-tryCatch({CONcastoEM(InMEDA)},error=function(cond){message("CAS to exact mass is empty...1")})
+          FMa<-c(FMa,PCID2)
+        }
+
+
+
+  } ### end of inchikey
+  }else{
+    PCID2<-tryCatch({CONcastoEM(InMEDA)},error=function(cond){message("CAS to exact mass is empty.....2")})
+    FMa<-c(FMa,PCID2)
+    ## No inchikey found
+
+  }## end of else
+}else{
+  ### Inchikey and inchi is not found
+  PCID2<-tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("SMILES to exact mass is empty")})
+  FMa<-c(FMa,PCID2)
+}
+  ###########################
+  return(FMa)
+  ###########################
+}
+###############################################################################
+###############################################################################
+FuFtoRe1<-function(InMEDA)
+{
+  #############################
+  FMa<-c()
+  ############################
+  if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
+    if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
+      PCID2<-tryCatch({CONinktoEM(InMEDA)},error=function(cond){message("Inchikey to exact mass is empty")})
+      FMa<-c(FMa,PCID2)
+    }else{
+      PCID2<-tryCatch({CONinctoEM(InMEDA)},error=function(cond){message("Inchi to exact mass is empty")})
+      FMa<-c(FMa,PCID2)
+    }
+
+  }else{
+    PCID2<- tryCatch({CONcastoEM(InMEDA)},error=function(cond){message("CAS to exact mass is empty")})
+
+    if(!sjmisc::is_empty(PCID2)){
+
+            FMa<-c(FMa,PCID2)
+
+      }else{
+
+
+	      if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
+
+		         PCID2<-ifelse(!sjmisc::is_empty(tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("SMILES to exact mass is empty")})),tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("SMILES to exact mass is empty")}),ifelse(!sjmisc::is_empty(tryCatch({mzAnnotation::smileToAccurateMass(as.character(InMEDA[["SMILES"]]))}, error = function(x) {return(0)})), tryCatch({mzAnnotation::smileToAccurateMass(as.character(InMEDA[["SMILES"]]))}, error = function(x) {return(0)}), tryCatch({PuSmilesToEM(InMEDA[["SMILES"]])},error = function(x) {return(0)})))
+
+			 FMa<-c(FMa,PCID2)
+
+               }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
+                      PCID2<-tryCatch({CONcastoEM(InMEDA)},error=function(cond){message("CAS to exact mass is empty.....3")})
+	              FMa<-c(FMa,PCID2)
+                }else{
+			PCID2<-tryCatch({FuFtoRe(InMEDA)},error=function(cond){message("NAME to exact mass is empty")})
+                     }
+
+           }###end of the else
+  }
+ #############################
+  return(FMa)
+ ############################
+}
+########################################################################
+########################################################################
+gETSmiles<-function(InMEDA)
+{
+  ######################
+  out<-c()
+  #######################
+  if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))))
+  {
+	  SM <- stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+	  out<-c(out,SM)
+
+  }else if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
+    IN <- stringr::str_trim(as.character(InMEDA[["InChI"]]))
+    mol <-tryCatch({rinchi::parse.inchi(IN)},error=function(cond){message("parese inchi conversion issue")})
+    SM <- tryCatch({rcdk::get.smiles(mol[[1]])},error=function(cond){message("get smiles conversion is a problem")})
+    ##print(SM)
+    ########################
+    ########################
+    ### adding the new conditions here
+    if(!sjmisc::is_empty(SM))
+    {
+      out<-c(out,SM)
+    }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]])))){
+      SM <- stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+      out<-c(out,SM)
+    }else{
+      SM1<-ifelse(!sjmisc::is_empty(tryCatch({webchem::cs_convert(IN, from = "inchi", to = "smiles")},error=function(cond){message("cs_convert IN to smiles is failing")})),tryCatch({webchem::cs_convert(IN, from = "inchi", to = "smiles")},error=function(cond){message("cs_convert IN to smiles is failing in gETSmiles")}),tryCatch({getCactus(IN,"smiles")},error=function(cond){message("get Cactus function from IN to smile is failing")}))
+
+      out<-c(out,SM1)
+    }
+    ################################
+    ################################
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
+    ###############################
+    CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+    CV1<-stringr::str_replace(CV,pattern='CAS:',replacement ="")
+    CV2<-stringr::str_trim(as.character(CV1))
+    ##############################
+    PCID<-tryCatch({webchem::get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){return(NA)})
+    PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID[[2]][1]), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){return(NA)})
+    ###############################
+    gSMI<-tryCatch({PCID1$CanonicalSMILES},error=function(cond){return(NA)})
+    IK<-tryCatch({PCID1$InChIKey},error=function(cond){return(NA)})
+    IN<-tryCatch({PCID1$InChI},error=function(cond){return(NA)})
+    SM<-tryCatch({getCactus(CV2, "smiles")},error=function(cond){message("CAS to smiles conversion is a problem")})
+    ################################
+    ################################
+    if(!sjmisc::is_empty(gSMI))
+    {
+      out<-c(out,gSMI)
+    }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]])))){
+      ## Adding this new
+      SM<-tryCatch({PuCAStoOI(CV2)},error=function(cond){message("CAS value is empty")})
+      out<-c(out,ifelse(!sjmisc::is_empty(tryCatch({ConvPCIDtoOCN(PC)[2]},error=function(cond){message("Pubchem value is empty")})),tryCatch({ConvPCIDtoOCN(PC)[2]},error=function(cond){message("Pubchem value is empty")}),as.character(InMEDA[["SMILES"]])))
+      ###############################
+    }else{
+      ##out<-c(out,"NA")
+      SM<-ifelse(!sjmisc::is_empty(SM),SM,tryCatch({webchem::cir_query(CV2,"smiles")[[2]]},error=function(cond){message("webchem cir query value empty")}))
+      out<-c(out,SM)
+    }
+    #################################
+  }else if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]]))){
+      if(tryCatch({webchem::is.inchikey(as.character(stringr::str_trim(InMEDA[["InChI"]])))},error=function(cond){message("inchikey validation failed")})){
+      ############################################
+      IK<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+      tes<-tryCatch({webchem::get_cid(stringr::str_trim(as.character(InMEDA[["InChI"]])), from = "inchikey")},error=function(cond){message("webchem not able to get cid from Inchikey")})
+      tes1<-tryCatch({tes$cid},error=function(cond){message("Inchikey to CID did not convert")})
+      tes2<-tryCatch({webchem::pc_prop(as.numeric(tes1[1]), properties = c("MolecularFormula", "MolecularWeight","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Inchikey to CID did not convert so did not get properties")})
+      IN<-tryCatch({tes2$InChI},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")})
+      SM<-tryCatch({tes2$CanonicalSMILES},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")})
+      SM1=ifelse(!sjmisc::is_empty(SM),SM,ifelse(!sjmisc::is_empty(tryCatch({PuInKtoSM(InMEDA[["InChI"]])},error=function(cond){message("Inchikey to smile conversion")})),tryCatch({PuInKtoSM(InMEDA[["InChI"]])},error=function(cond){message("Inchikey to smile conversion")}),ifelse(!sjmisc::is_empty(tryCatch({getCactus(InMEDA[["InChI"]], "smiles")},error=function(cond){message("Inchikey to smile conversion")})),tryCatch({getCactus(InMEDA[["InChI"]], "smiles")},error=function(cond){message("Inchikey to smile conversion")}),tryCatch({PuNAMEtoOI(InMEDA[["Name"]])[3]},error=function(cond){message("name to smile conversion")}))))
+      out<-c(out,SM1)
+
+     }else{
+
+      if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]])))){
+
+        SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+        out<-c(out,SM)
+        ####################
+      }else{
+        #############################################
+	print("entering the else part..getSMILES..function ..inchikey and smiles failed")
+        ######################
+        PCID1<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+	SM<-ifelse(!sjmisc::is_empty(PCID1),tryCatch({webchem::cs_convert(as.numeric(PCID1),from="csid",to="smiles")},error=function(cond){message("pubchem CID to smile conversion")}),tryCatch({ConvCIDtoOID1(as.numeric(PCID1))[3]},error=function(cond){message("pubchem CID to smile conversion")}))
+        out<-c(out,SM)
+        ####################
+      }##inside else part
+    }###end of else inchikey checking
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]])))){
+    ####################################################
+    PCID1<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+    ####################################################
+    tes<-tryCatch({webchem::pc_prop(PCID1, properties = c("MolecularFormula", "MolecularWeight","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Did not get properties from Pubchem CID")})
+    gSMI<-tryCatch({tes$CanonicalSMILES},error=function(cond){message("smiles is not found")})
+    IK<-tryCatch({tes$InChIKey},error=function(cond){message("some mistake happened in file search files")})
+    IN<-tryCatch({tes$InChI},error=function(cond){message("some mistake happened in file search files")})
+    ##out<-c(out,gSMI)
+    if(!sjmisc::is_empty(gSMI))
+    {
+      out<-c(out,gSMI)
+    }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]])))){
+      SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+      out<-c(out,SM)
+    }else{
+      #########################################
+      ### This is old code I am adding new code
+      ##out<-c(out,"NA")
+      ##########################################
+      PC<-as.numeric(stringr::str_trim(as.character(InMEDA[["PubChem CID"]])))
+      out<-c(out,ifelse(!sjmisc::is_empty(tryCatch({ConvPCIDtoOCN(PC)[2]},error=function(cond){message("Pubchem value is empty")})),tryCatch({ConvPCIDtoOCN(PC)[2]},error=function(cond){message("Pubchem value is empty")}),ifelse(sjmisc::is_empty(tryCatch({ConvCIDtoOID1(PC)[3]},error=function(cond){message("Pubchem CID is empty")})),!sjmisc::is_empty(tryCatch({ConvCIDtoOID1(PC)[3]},error=function(cond){message("Pubchem CID is empty")})),ifelse(!sjmisc::is_empty(PC),webchem::cs_convert(PC,from="csid",to="smiles"),NA))))
+      ##########################################
+    }
+
+
+  }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]]))){
+
+    SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+    out<-c(out,SM)
+  }else{
+    out<-c(out,"NA")
+  }
+  ############
+  return(out)
+  ############
+}
+#############################################################################
+
 MaKE.ONT.REC<-function(InMEDA)
 {
   out<-c()
   ################
   print("entering the ontology area")
-  ###############
+  ################
   if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI="))
   {
     ###################################
-    print("enter the line 6")
+    print("enter the line 6 ...........")
     ###################################
-    IN<-as.character(InMEDA[["InChI"]])
-    mol <-tryCatch({rinchi::parse.inchi(IN)},error=function(cond){message("name is empty")})
-    SM<-tryCatch({rcdk::get.smiles(mol[[1]])},error=function(cond){message("name is empty")})
-    IK<-tryCatch({rinchi::get.inchi.key(SM)},error=function(cond){message("name is empty")})
+    IN<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+    mol <-tryCatch({rinchi::parse.inchi(IN)},error=function(cond){message("parse inchi is empty")})
+    SM<-ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)})),tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}),tryCatch({rcdk::get.smiles(mol[[1]])},error=function(cond){message("get smiles is empty")}))
+    IK<-ifelse(!sjmisc::is_empty(tryCatch({rinchi::get.inchi.key(SM)},error=function(cond){return(NA)})),tryCatch({rinchi::get.inchi.key(SM)},error=function(cond){return(NA)}),tryCatch({gsub("InChIKey=","",stringr::str_trim(tryCatch({getCactus(IN, "stdinchikey")},error=function(cond){return(NA)})))},error=function(cond){return(NA)}))
     IK1<-paste("INCHIKEY:",IK,sep=" ")
     ############################
     if(!sjmisc::is_empty(IK)){
-      ########################
+      ##########################
       print("enter the line 8")
       ##########################
-      IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+      IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+      ########################################
+      ########################################
       if(!sjmisc::is_empty(IKCRV)){
         #############################
-        ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+        ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
         ##########################
         IK1<-paste("INCHIKEY:",IK,sep=" ")
         tes2<-paste("Ontology:",ONTV,sep=" ")
@@ -635,86 +1444,114 @@ MaKE.ONT.REC<-function(InMEDA)
         out<-c(out,FINCH)
         ########################
       }else{
-        IK1<-paste("INCHIKEY:",IK,sep=" ")
-        tes2<-paste("Ontology:","",sep=" ")
-        FINCH<-paste("INCHI:",IN,sep=" ")
-        ################
-        out<-c(out,tes2)
-        out<-c(out,IK1)
-        out<-c(out,FINCH)
-        
+        ### adding this new part###
+	if(!sjmisc::is_empty(SM)){
+		####################################
+	        tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = SM, type = 'STRUCTURE')},error=function(cond){message("Classyfire is empty")})
+      		tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("Classyfire smiles to Ontology empty")})
+      		tes2<-getOntoSM(SM)
+                ###########################################################
+      		###########################################################
+      		IK1<-paste("INCHIKEY:",IK,sep=" ")
+      		##tes2<-paste("Ontology:",tes1,sep=" ")
+      		FINCH<-paste("INCHI:",IN,sep=" ")
+      		####################################
+      		out<-c(out,tes2)
+      		out<-c(out,IK1)
+      		out<-c(out,FINCH)
+		####################################
+
+        }else{
+
+        SM<-tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)})
+        IN<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	IK<-paste("INCHIKEY:",tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}) ,sep=" ")
+	tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("Classyfire smiles to Ontology empty")})
+	#####################################
+	GVOF=getOntFromSMI(IK,InMEDA)
+	######################################
+        out<-c(out,GVOF[1])
+        out<-c(out,GVOF[2])
+        out<-c(out,GVOF[3])
+        ########################################
+	}
+      #######################################################
+      #######################################################
       }
-    ####################################################################
+   #######################################################################
     }else if(!sjmisc::is_empty(SM)){
-      ##############################################################
+      ##################################################################
+      ##################################################################
       tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = SM, type = 'STRUCTURE')},error=function(cond){message("Classyfire is empty")})
-      tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},error=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+    #############################################################
+    #############################################################
+      tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("Classyfire smiles to ontology is empty")})
+      GVOF=getOntFromSMI(IK,InMEDA)
       ###########################################################
       ###########################################################
-      IK1<-paste("INCHIKEY:",IK,sep=" ")
-      tes2<-paste("Ontology:",tes1,sep=" ")
-      FINCH<-paste("INCHI:",IN,sep=" ")
-      #########################
-      out<-c(out,tes2)
-      out<-c(out,IK1)
-      out<-c(out,FINCH)
-      ########################
+      out<-c(out,GVOF[1])
+      out<-c(out,GVOF[2])
+      out<-c(out,GVOF[3])
+      ############################################################
     }else{
-      #############################################
+  ################################################################
       F1ONT<-paste("Ontology:","",sep=" ")
-      ##FINCH<-paste("INCHI:",SM,sep=" ")
+      #############################################
       ##############################################
       if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-        FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-        IK<-paste("INCHIKEY:","",sep=" ")
-        ##################
-        out<-c(out,F1ONT)
-        out<-c(out,IK)
-        out<-c(out,FINCH)
+        ############################################
+        FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+        IK<-paste("INCHIKEY:",tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}) ,sep=" ")
+        GVOF=getOntFromSMI(IK,InMEDA)
+	##################
+        out<-c(out,GVOF[1])
+        out<-c(out,GVOF[2])
+        out<-c(out,GVOF[3])
         #################
       }else{
         ###################################
-        FINCH<-paste("INCHI:","",sep=" ")
-        IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-        ###############
-        out<-c(out,F1ONT)
-        out<-c(out,IK)
-        out<-c(out,FINCH)
+	FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+        IK<-paste("INCHIKEY:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+	GVOF=getOntFromSMI(IK,InMEDA)
+        ####################
+        out<-c(out,GVOF[1])
+        out<-c(out,GVOF[2])
+        out<-c(out,GVOF[3])
         ####################
       }
-      #################
+      ######################
     }## end of else..else if ...if
-  }else if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]]))){
-    ###########################
-    print("enter the line ...53")
-    print(as.character(InMEDA[["InChI"]]))
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]])))){
+ ########################################################################
     ############################
-    if(tryCatch({webchem::is.inchikey(as.character(InMEDA[["InChI"]]))},error=function(cond){message("inchikey validation failed")}))
+    if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey validation failed")}))
     {
       #########################################
       print("entering the inchikey area")
       ########################################
       tes<-tryCatch({webchem::get_cid(stringr::str_trim(as.character(InMEDA[["InChI"]])), from = "inchikey")},error=function(cond){message("webchem not able to get cid from Inchikey")})
       tes1<-tryCatch({tes$cid},error=function(cond){message("Inchikey to CID did not convert")})
-      tes2<-tryCatch({webchem::pc_prop(as.numeric(tes1[1]), properties = c("MolecularFormula", "MolecularWeight","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Inchikey to CID did not convert so did not get properties")})
-      IN<-tryCatch({tes2$InChI},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")})
-      SM<-tryCatch({tes2$CanonicalSMILES},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")})
+      #####################################################################
+      ######################################################################
+      tes2<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",tes1[1]))), properties = c("MolecularFormula", "MolecularWeight","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Inchikey to CID did not convert so did not get properties")})
+      SM<-ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)})),tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}),tryCatch({tes2$CanonicalSMILES},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")}))
+      IN<-ifelse(!sjmisc::is_empty(tryCatch({tes2$InChI},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")})),tryCatch({tes2$InChI},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")}),tryCatch({rinchi::get.inchi(SM)},error=function(cond){message("smiles to Inchikey conversion ")}))
+      IK<-ifelse(!sjmisc::is_empty(tryCatch({stringr::str_trim(as.character(InMEDA[["InChI"]]))},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")})),tryCatch({stringr::str_trim(as.character(InMEDA[["InChI"]]))},error=function(cond){message("Inchi to Inchikey failed because of CID not converting")}),tryCatch({rinchi::get.inchi.key(SM)},error=function(cond){message("smiles to Inchikey conversion ")}))
       #######################################
-      print("check if this is the error area")
-      print(IN)
       #######################################
       FINCH<-paste("INCHI:",IN,sep=" ")
-      IK<-as.character(InMEDA[["InChI"]])
       IK1<-paste("INCHIKEY:",IK,sep=" ")
       ############################
       if(!sjmisc::is_empty(IK)){
-        ########################
-        print("enter the line 8")
         ##########################
-        IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+        print("enter the line 8")
+        #############################
+        IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+        #####################################
+        #####################################
         if(!sjmisc::is_empty(IKCRV)){
-          
-          ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+
+          ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
           ##########################
           IK1<-paste("INCHIKEY:",IK,sep=" ")
           tes2<-paste("Ontology:",ONTV,sep=" ")
@@ -725,53 +1562,75 @@ MaKE.ONT.REC<-function(InMEDA)
           out<-c(out,FINCH)
           ########################
         }else{
+          #################################
           IK1<-paste("INCHIKEY:",IK,sep=" ")
-          tes2<-paste("Ontology:","",sep=" ")
           FINCH<-paste("INCHI:",IN,sep=" ")
-          ################
-          out<-c(out,tes2)
-          out<-c(out,IK1)
-          out<-c(out,FINCH)
-          
+	  GVOF=getOntFromSMI(IK,InMEDA)
+          ################################
+	  out<-c(out,GVOF[1])
+	  out<-c(out,GVOF[2])
+	  out<-c(out,GVOF[3])
+          ################################
         }## end of else
       }else if(!sjmisc::is_empty(SM)){
+        #############################################
         tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = SM, type = 'STRUCTURE')},error=function(cond){message("Classyfire is empty")})
-        tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},error=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-        IK1<-paste("INCHIKEY:",IK,sep=" ")
-        tes2<-paste("Ontology:",tes1,sep=" ")
-        FINCH<-paste("INCHI:",IN,sep=" ")
-        ########################
-        out<-c(out,tes2)
-        out<-c(out,IK1)
-        out<-c(out,FINCH)
-        
-        
+        ##################################################
+        IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+        #########################################################
+        GVOF=getOntFromSMI(IK,InMEDA)
+	################################
+        out<-c(out,GVOF[1])
+        out<-c(out,GVOF[2])
+        out<-c(out,GVOF[3])
+	#################################
+
       }else{
         F1ONT<-paste("Ontology:","",sep=" ")
-        ##FINCH<-paste("INCHI:",IN,sep=" ")
-        ##############################################
+        ######################################################
         if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-          FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-          IK<-paste("INCHIKEY:","",sep=" ")
-          ##################
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
-          #################
+          ####################################################
+          FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+	  IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+          GVOF=getOntFromSMI(IK,InMEDA)
+	  ##############################
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+          ##############################
         }else{
           ###################################
-          FINCH<-paste("INCHI:","",sep=" ")
-          IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-          ###############
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
-          ####################
+	  FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+          IK<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+          GVOF=getOntFromSMI(IK,InMEDA)
+          ##########################
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+          ##########################
         }
-        
+
       }## end of else ...else if ..else
+    }else if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
+
+	    print("enter the else if loop ...where it has the INCHI information")
+
+	    FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+	    IK<-tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")})
+  	    SM<-tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "smiles")},error=function(cond){message("webchecm could not fetch the info inchi")})
+  	    tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("smiles to ontology is failing")})
+ 	    GVOF=getOntFromSMI(IK,InMEDA)
+	    ##########################
+	    out<-c(out,GVOF[1])
+            out<-c(out,GVOF[2])
+            out<-c(out,GVOF[3])
+	    ##########################
+
     }else{
+
+      print("checking if entering the else loop in the inch or inchikey function")
       ##inchikey validation failed ..so must be CAS or try to get ontology from smiles ...
+      ########################################################################################
       if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
         ###############################
         print("enter the CAS area ONtology")
@@ -779,185 +1638,275 @@ MaKE.ONT.REC<-function(InMEDA)
         CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
         CV1<-stringr::str_replace(CV,pattern='CAS:',replacement ="")
         CV2<-stringr::str_trim(as.character(CV1))
-        ##############################
+        ###########################################
         PCID<-tryCatch({webchem::get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){message("Pubchem Id is empty")})
-        PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID[[2]][1]), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Pubchem Id is empty")})
+	##################################################################################
+	##################################################################################
+        PCID1<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID[[2]][1]))), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Pubchem Id is empty")})
         ###############################
         gSMI<-tryCatch({PCID1$CanonicalSMILES},error=function(cond){message("smiles is not found")})
-        IK<-tryCatch({PCID1$InChIKey},error=function(cond){message("some mistake happened in file search files")})
-        IN<-tryCatch({PCID1$InChI},error=function(cond){message("some mistake happened in file search files")})
+	IK<-ifelse(!sjmisc::is_empty(tryCatch({PCID1$InChIKey},error=function(cond){message("CID to inchikey conversion failed")})),tryCatch({PCID1$InChIKey},error=function(cond){message("CID to inchikey conversion failed")}),tryCatch({getCactus(CV2,"stdinchikey")},error=function(cond){message("CID to inchikey conversion is failed")}))
+	IN<-ifelse(!sjmisc::is_empty(tryCatch({PCID1$InChI},error=function(cond){message("CID to inchi conversion failed")})),tryCatch({PCID1$InChI},error=function(cond){message("CID to inchi conversion failed")}),tryCatch({getCactus(CV2,"stdinchi")},error=function(cond){message("CID to inchikey conversion failed")}))
         IK1<-paste("INCHIKEY:",IK,sep=" ")
         #############################
         if(!sjmisc::is_empty(IK)){
           ##########################
-          IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+          IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+          ######################################
+          #####################################
           if(!sjmisc::is_empty(IKCRV)){
-            
-            ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+
+            ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
             ##########################
+	    IN<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	    IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	    ###############################
             IK1<-paste("INCHIKEY:",IK,sep=" ")
             tes2<-paste("Ontology:",ONTV,sep=" ")
             FINCH<-paste("INCHI:",IN,sep=" ")
-            #################
+            ###########################
             out<-c(out,tes2)
             out<-c(out,IK1)
             out<-c(out,FINCH)
             ########################
           }## ikcrv END
         }else{
+
           if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
-            ##IK<-as.character(InMEDA[["SMILES"]])
-            F1SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+            ####################################################################
+	    F1SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
             F1SM1<-tryCatch({rinchi::get.inchi.key(F1SM)},error=function(cond){message("webchecm could not fetch the info")})
-            #########
+            ##################################
             if(!sjmisc::is_empty(F1SM1)){
+              ################################
               IK<-F1SM1
-              IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+              IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+              ############################################
+              ############################################
               if(!sjmisc::is_empty(IKCRV)){
-                ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+                ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
                 ##########################
                 IK1<-paste("INCHIKEY:",IK,sep=" ")
                 tes2<-paste("Ontology:",ONTV,sep=" ")
                 FINCH<-paste("INCHI:",IN,sep=" ")
-                #################
+                #########################
                 out<-c(out,tes2)
                 out<-c(out,IK1)
                 out<-c(out,FINCH)
+                ##############################
               }##IKCRV
             }else{
+
               ## not able to get inchikey from smiles too check pubchemID
               if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
-                FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+                ##############################################
+                ##FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+                FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
                 FPUCID1<-as.numeric(FPUCID)
-                FINSM<-tryCatch({webchem::pc_prop(FPUCID1)},error=function(cond){message("webchecm could not fetch the info")})
-                FIINK<-tryCatch({FINSM$InChIKey},error=function(cond){message("webchecm could not fetch the info")})
+                FINSM<-tryCatch({webchem::pc_prop(FPUCID1)},error=function(cond){message("webchecm could not fetch the information")})
+                FIINK<-tryCatch({FINSM$InChIKey},error=function(cond){message("webchecm could not fetch the info inchikey")})
+		SM<-tryCatch({FINSM$CanonicalSMILES},error=function(cond){message("webchecm could not fetch the info for smile")})
+		IN<-tryCatch({FINSM$InChI},error=function(cond){message("webchecm could not fetch the info inchi")})
                 #############################
                 IK<-FIINK
                 #############################
                 if(!sjmisc::is_empty(IK)){
                   ##########################
-                  IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+                  IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+                  #####################################
+                  ######################################
                   if(!sjmisc::is_empty(IKCRV)){
-                    
-                    ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+
+                    ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
                     ##########################
+		    IN<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+		    ###############################
                     IK1<-paste("INCHIKEY:",IK,sep=" ")
                     tes2<-paste("Ontology:",ONTV,sep=" ")
                     FINCH<-paste("INCHI:",IN,sep=" ")
-                    #################
+                    ########################
                     out<-c(out,tes2)
                     out<-c(out,IK1)
                     out<-c(out,FINCH)
                     ########################
-                  }## ikcrv END
-                }else{
-                  F1ONT<-paste("Ontology:","",sep=" ")
-                  ##FINCH<-paste("INCHI:",SM,sep=" ")
-                  ##############################################
-                  if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-                    FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-                    IK<-paste("INCHIKEY:","",sep=" ")
-                    ##################
-                    out<-c(out,F1ONT)
-                    out<-c(out,IK)
-                    out<-c(out,FINCH)
-                    #################
                   }else{
+			  ############################
+			  ###tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("smiles to ontology is failing")})
+			  #############################
+			  IN<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+			  IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+			  ##############################
+			  GVOF=getOntFromSMI(IK,InMEDA)
+			  ###############################
+			  out<-c(out,GVOF[1])
+			  out<-c(out,GVOF[2])
+			  out<-c(out,GVOF[3])
+			  ###############################
+		  }## added the else loop
+	      ######################################################################
+                }else{
+
+			print("enter the else loop approximately around 1594 line")
+                  #############################################################################
+                  if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
+                  #############################################################################
+		    if(!tryCatch({webchem::is.inchikey(as.character(InMEDA[["InChI"]]))},error=function(cond){message("inchikey validation failed")})){
+
+	            ############################
+                    FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
+                    IK1<-paste("INCHIKEY:",tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")}),sep=" ")
+                    IK<-tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")})
+		    SM<-tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "smiles")},error=function(cond){message("webchecm could not fetch the info inchi")})
+		    ############################
+		    GVOF=getOntFromSMI(IK,InMEDA)
+		    ############################
+		    out<-c(out,GVOF[1])
+		    out<-c(out,GVOF[2])
+		    out<-c(out,GVOF[3])
+                    ############################
+
+                  }else{
+
                     ###################################
-                    FINCH<-paste("INCHI:","",sep=" ")
-                    IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-                    ###############
-                    out<-c(out,F1ONT)
-                    out<-c(out,IK)
-                    out<-c(out,FINCH)
-                    ####################
-                  }
-                  #################
+		    FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+		    IK=stringr::str_trim(as.character(InMEDA[["InChI"]]))
+		    IK1<-paste("INCHIKEY:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+		    SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+                    ####################################
+		    GVOF=getOntFromSMI(IK,InMEDA)
+		    ####################################
+		    out<-c(out,GVOF[1])
+                    out<-c(out,GVOF[2])
+                    out<-c(out,GVOF[3])
+                    ####################################
+                    }
+                ######################
+                   }
+               ######################
                 }## end of else
-                
-                
+            ########################################
+
               }else{
-                F1ONT<-paste("Ontology:","",sep=" ")
-                ##FINCH<-paste("INCHI:",SM,sep=" ")
+
                 ##############################################
-                if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-                  FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-                  IK<-paste("INCHIKEY:","",sep=" ")
-                  ##################
-                  out<-c(out,F1ONT)
-                  out<-c(out,IK)
-                  out<-c(out,FINCH)
-                  #################
+                if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])),"InChI=")){
+		  if(!tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey validation failed")})){
+                  #####################################
+                  FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+		  IK=tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")})
+		  IK1<-paste("INCHIKEY:",tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}) ,sep=" ")
+                  ###################################
+		  GVOF=getOntFromSMI(IK,InMEDA)
+		  ####################################
+                  out<-c(out,GVOF[1])
+                  out<-c(out,GVOF[2])
+                  out<-c(out,GVOF[3])
+		  ###################################
                 }else{
                   ###################################
-                  FINCH<-paste("INCHI:","",sep=" ")
+		  FINCH<-paste("INCHI:",tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}),sep=" ")
                   IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-                  ###############
-                  out<-c(out,F1ONT)
-                  out<-c(out,IK)
-                  out<-c(out,FINCH)
-                  ####################
-                }
+                  ###################################
+		  GVOF=getOntFromSMI(IK,InMEDA)
+		  ###############################
+		  out<-c(out,GVOF[1])
+                  out<-c(out,GVOF[2])
+                  out<-c(out,GVOF[3])
+                  ###################################
+                }### else loop
+	      ###########################
+		}## end of if loop
+	####################################
               }## end of else## CID
-              
-              
+        ########################################
             }## check else..smiles
+        #############################################
           }else{
             #############################################
+		  print("enter the line areound 178 lines")
             F1ONT<-paste("Ontology:","",sep=" ")
-            ##FINCH<-paste("INCHI:",SM,sep=" ")
             ##############################################
-            if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-              FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-              IK<-paste("INCHIKEY:","",sep=" ")
-              ##################
-              out<-c(out,F1ONT)
-              out<-c(out,IK)
-              out<-c(out,FINCH)
-              #################
+            if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])) ,"InChI=")){
+		    if(!tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey validation failed")})){
+              ##################################
+              FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+	      IK1<-paste("INCHIKEY:",tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}) ,sep=" ")
+              IK=tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")})
+	      ##################################
+	      GVOF=getOntFromSMI(IK,InMEDA)
+	      ######################################
+              out<-c(out,GVOF[1])
+              out<-c(out,GVOF[2])
+              out<-c(out,GVOF[3])
+	      ##################################
             }else{
               ###################################
-              FINCH<-paste("INCHI:","",sep=" ")
-              IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-              ###############
-              out<-c(out,F1ONT)
-              out<-c(out,IK)
-              out<-c(out,FINCH)
-              ####################
-            }
-            
+	      IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+              GVOF=getOntFromSMI(IK,InMEDA)
+              ######################
+	      out<-c(out,GVOF[1])
+	      out<-c(out,GVOF[2])
+              out<-c(out,GVOF[3])
+              ######################
+            }## else loop
+         ##########################
+           }## end of if loop
+        ##########################
           }## inner smiles ..end ..else
+       #############################
         }## end of smiles## CAS
-        
+     ################################################
       }else{
         #############################################
-        F1ONT<-paste("Ontology:","",sep=" ")
-        ##FINCH<-paste("INCHI:",SM,sep=" ")
+	print("enter the if condition")
         ##############################################
         if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-          FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-          IK<-paste("INCHIKEY:","",sep=" ")
-          ##################
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
-          #################
+		if(!tryCatch({webchem::is.inchikey(as.character(InMEDA[["InChI"]]))},error=function(cond){message("inchikey validation failed")})){
+         ##########################################
+            print("enter the if loop around 1722")
+	 ######################################
+          FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+	  IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	  #################################
+	  GVOF=getOntFromSMI(IK,InMEDA)
+	  #################################
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+	  #################################
+          #################################
         }else{
+		print("enter the else loop around 1722")
           ###################################
-          FINCH<-paste("INCHI:","",sep=" ")
-          IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-          ###############
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
-          ####################
-        }
-        
-      }####
-      ##################################    
-    }### end of else ..so starting checking CAS..smiles ..so ..on 
+	  FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+          IK=tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")})
+	  ################################
+          GVOF=getOntFromSMI(IK,InMEDA)
+	  ################################
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+	  ################################
+        } ## else loop
+     #####################################
+       }else{
+	       ########################################
+	       print("enter the checking if it is entering this vallue")
+	       SM<-tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)})
+	       IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+               ############################################
+	       GVOF=getOntFromSMI(IK,InMEDA)
+	       ###########################################
+	       out<-c(out,GVOF[1])
+               out<-c(out,GVOF[2])
+               out<-c(out,GVOF[3])
+	       ###########################################
+	}
+      }#######
+      ##################################
+    }### end of else ..so starting checking CAS..smiles ..so ..on
   }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
-    ###############################
+  #################################################
     print("enter the CAS area ONtology")
     ##############################
     CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
@@ -968,51 +1917,59 @@ MaKE.ONT.REC<-function(InMEDA)
     PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID[[2]][1]), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Pubchem Id is empty")})
     ###############################
     gSMI<-tryCatch({PCID1$CanonicalSMILES},error=function(cond){message("smiles is not found")})
-    IK<-tryCatch({PCID1$InChIKey},error=function(cond){message("some mistake happened in file search files")})
-    IN<-tryCatch({PCID1$InChI},error=function(cond){message("some mistake happened in file search files")})
+    IK<-ifelse(!sjmisc::is_empty(tryCatch({PCID1$InChIKey},error=function(cond){message("CID to inchikey conversion failed")})),tryCatch({PCID1$InChIKey},error=function(cond){message("CID to inchikey conversion failed")}),tryCatch({getCactus(CV2,"stdinchikey")},error=function(cond){message("CID to inchikey conversion failed")}))
+    IN<-ifelse(!sjmisc::is_empty(tryCatch({PCID1$InChI},error=function(cond){message("CID to inchi conversion failed")})),tryCatch({PCID1$InChI},error=function(cond){message("CID to inchi conversion failed")}),tryCatch({getCactus(CV2,"stdinchi")},error=function(cond){message("CID to inchikey conversion failed")}))
     IK1<-paste("INCHIKEY:",IK,sep=" ")
     #############################
     if(!sjmisc::is_empty(IK)){
       ##########################
-      IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+      IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+      ######################################
       if(!sjmisc::is_empty(IKCRV)){
-        
-        ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+
+        ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
         ##########################
         IK1<-paste("INCHIKEY:",IK,sep=" ")
         tes2<-paste("Ontology:",ONTV,sep=" ")
         FINCH<-paste("INCHI:",IN,sep=" ")
-        #################
+        ##########################
         out<-c(out,tes2)
         out<-c(out,IK1)
         out<-c(out,FINCH)
-        ########################
+        ###########################
       }## ikcrv END
     }else{
+	    print("enter the line around 1799")
       if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
-        IK<-as.character(InMEDA[["SMILES"]])
+        #############################################
+        SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
         F1SM<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
         F1SM1<-tryCatch({rinchi::get.inchi.key(F1SM)},error=function(cond){message("webchecm could not fetch the info")})
-        #########
+        ##############################
         if(!sjmisc::is_empty(F1SM1)){
+          ############################
           IK<-F1SM1
-          IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+          IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+          ###################################
+          ############################################
           if(!sjmisc::is_empty(IKCRV)){
-            ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+            ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
             ##########################
             IK1<-paste("INCHIKEY:",IK,sep=" ")
             tes2<-paste("Ontology:",ONTV,sep=" ")
             FINCH<-paste("INCHI:",IN,sep=" ")
-            #################
+            #####################
             out<-c(out,tes2)
             out<-c(out,IK1)
             out<-c(out,FINCH)
-	    ####################
+            ####################
           }##IKCRV
         }else{
-          ## not able to get inchikey from smiles too check pubchemID
+
+		print("enter the line around 1826")
           if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
-            FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+            ############################################
+            FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
             FPUCID1<-as.numeric(FPUCID)
             FINSM<-tryCatch({webchem::pc_prop(FPUCID1)},error=function(cond){message("webchecm could not fetch the info")})
             FIINK<-tryCatch({FINSM$InChIKey},error=function(cond){message("webchecm could not fetch the info")})
@@ -1021,106 +1978,129 @@ MaKE.ONT.REC<-function(InMEDA)
             #############################
             if(!sjmisc::is_empty(IK)){
               ##########################
-              IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+              IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+              ################################
+              #######################################
               if(!sjmisc::is_empty(IKCRV)){
-                
-                ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+
+                ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
                 ##########################
                 IK1<-paste("INCHIKEY:",IK,sep=" ")
                 tes2<-paste("Ontology:",ONTV,sep=" ")
                 FINCH<-paste("INCHI:",IN,sep=" ")
-                #################
+                ##########################
                 out<-c(out,tes2)
                 out<-c(out,IK1)
                 out<-c(out,FINCH)
-                ########################
+                ##########################
               }## ikcrv END
             }else{
+
+	      print("enter the line around 1858")
               F1ONT<-paste("Ontology:","",sep=" ")
-              ##FINCH<-paste("INCHI:",SM,sep=" ")
               ##############################################
               if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-                FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-                IK<-paste("INCHIKEY:","",sep=" ")
-                ##################
-                out<-c(out,F1ONT)
-                out<-c(out,IK)
-                out<-c(out,FINCH)
-                #################
+		      if(!tryCatch({webchem::is.inchikey(as.character(InMEDA[["InChI"]]))},error=function(cond){message("inchikey validation failed")})){
+                ###############################
+                FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+		IK=tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")})
+		#######################################
+		GVOF=getOntFromSMI(IK,InMEDA)
+		######################################
+		out<-c(out,GVOF[1])
+		out<-c(out,GVOF[2])
+		out<-c(out,GVOF[3])
+		#######################################
               }else{
                 ###################################
-                FINCH<-paste("INCHI:","",sep=" ")
-                IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-                ###############
-                out<-c(out,F1ONT)
-                out<-c(out,IK)
-                out<-c(out,FINCH)
-                ####################
+		FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	        IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+		#######################################
+                GVOF=getOntFromSMI(IK,InMEDA)
+		#######################################
+		out<-c(out,GVOF[1])
+                out<-c(out,GVOF[2])
+                out<-c(out,GVOF[3])
+                #######################################
               }
-              #################
+           #########################
             }## end of else
-            
-            
+           #########################
+            }
+	  ###########################
           }else{
+		  print("enter the line around 1898")
+            ##############################################
             F1ONT<-paste("Ontology:","",sep=" ")
-            ##FINCH<-paste("INCHI:",SM,sep=" ")
             ##############################################
             if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-              FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-              IK<-paste("INCHIKEY:","",sep=" ")
+		    if(!tryCatch({webchem::is.inchikey(as.character(InMEDA[["InChI"]]))},error=function(cond){message("inchikey validation failed")})){
+              #################################################
+	      IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	      ##########################
+	      GVOF=getOntFromSMI(IK,InMEDA)
               ##################
-              out<-c(out,F1ONT)
-              out<-c(out,IK)
-              out<-c(out,FINCH)
+	      out<-c(out,GVOF[1])
+              out<-c(out,GVOF[2])
+              out<-c(out,GVOF[3])
               #################
             }else{
               ###################################
-              FINCH<-paste("INCHI:","",sep=" ")
-              IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-              ###############
-              out<-c(out,F1ONT)
-              out<-c(out,IK)
-              out<-c(out,FINCH)
+	      FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+              IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+              #######################
+	      GVOF=getOntFromSMI(IK,InMEDA)
+	      ######################################
+	      out<-c(out,GVOF[1])
+	      out<-c(out,GVOF[2])
+	      out<-c(out,GVOF[3])
+	      #######################
               ####################
             }
+         ################
           }## end of else## CID
-          
-          
+        ##################
+         }
+       #######################
         }## check else..smiles
       }else{
         #############################################
-        F1ONT<-paste("Ontology:","",sep=" ")
-        ##FINCH<-paste("INCHI:",SM,sep=" ")
         ##############################################
         if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-          FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-          IK<-paste("INCHIKEY:","",sep=" ")
-          ##################
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
-          #################
+		if(!tryCatch({webchem::is.inchikey(as.character(InMEDA[["InChI"]]))},error=function(cond){message("inchikey validation failed")})){
+          ##########################################
+          FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+	  IK<-paste("INCHIKEY:",tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)}) ,sep=" ")
+	  GVOF=getOntFromSMI(IK,InMEDA)
+	  ############################
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+	  ##############################
         }else{
           ###################################
-          FINCH<-paste("INCHI:","",sep=" ")
-          IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-          ###############
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
-          ####################
+	  FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+          IK=stringr::str_trim(as.character(InMEDA[["InChI"]]))
+	  #################################
+	  GVOF=getOntFromSMI(IK,InMEDA)
+	  ####################################
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+       #######################################
         }
-        
+       }
       }## inner smiles ..end ..else
     }## end of smiles## CAS
-    
+
   }else{
     ##########################################
-    print("entering this line...174")
-    #################################
-    PCID<- as.character(InMEDA[["PubChem CID"]])
-    PCSM<- as.character(InMEDA[["SMILES"]])
-    #############################
+    ##########################################
+
+    PCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
+    PCSM<- stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+
+    ###################################
     if(!sjmisc::is_empty(PCID))
     {
       #######################################
@@ -1133,11 +2113,13 @@ MaKE.ONT.REC<-function(InMEDA)
       IK1<-paste("INCHIKEY:",IK,sep=" ")
       #############################
       if(!sjmisc::is_empty(IK)){
-        ###############################
-        IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+        ##################################
+        IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+        ####################################
+        ####################################
         if(!sjmisc::is_empty(IKCRV)){
           ####################
-          ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+          ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
           ##################################
           IK1<-paste("INCHIKEY:",IK,sep=" ")
           tes2<-paste("Ontology:",ONTV,sep=" ")
@@ -1146,65 +2128,83 @@ MaKE.ONT.REC<-function(InMEDA)
           out<-c(out,tes2)
           out<-c(out,IK1)
           out<-c(out,FINCH)
+          #########################
         }else{
+          #################################
           IK1<-paste("INCHIKEY:",IK,sep=" ")
-          tes2<-paste("Ontology:","",sep=" ")
-          FINCH<-paste("INCHI:",IN,sep=" ")
-          out<-c(out,tes2)
-          out<-c(out,IK1)
-          out<-c(out,FINCH)
+	  SM<-tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)})
+          IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	  ####################################
+	  GVOF=getOntFromSMI(IK,InMEDA)
+	  ######################################
+	  out<-c(out,GVOF[1])
+	  out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+          #################################
         }###else
       }else if(!sjmisc::is_empty(gSMI)){
         ##################################################
         print("enter the line 184")
         ##################################################
         tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = gSMI, type = 'STRUCTURE')},error=function(cond){message("adduct value is missing")})
-        tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},error=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-        ###############################################
-        tes2<-paste("Ontology:",tes1,sep=" ")
-        FINCH<-paste("INCHI:",IN,sep=" ")
-        ##################
-        out<-c(out,tes2)
-        out<-c(out,IK1)
-        out<-c(out,FINCH)
-        #################
+        IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	#######################################
+	GVOF=getOntFromSMI(IK,InMEDA)
+        ######################################
+        out<-c(out,GVOF[1])
+        out<-c(out,GVOF[2])
+        out<-c(out,GVOF[3])
+	#####################################
+        #####################################
       }else{
+
+        ###############################################################
+	###F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
         F1ONT<-paste("Ontology:","",sep=" ")
         if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
           #########################################
-          FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-          IK<-paste("INCHIKEY:","",sep=" ")
-          #################
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
+          FINCH<-paste("INCHI:",stringr::str_trim(as.character(InMEDA[["InChI"]])),sep=" ")
+	  IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+	  ################################
+          GVOF=getOntFromSMI(IK,InMEDA)
+          ######################################
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+	  #######################################
           ################
         }else{
-          FINCH<-paste("INCHI:","",sep=" ")
-          IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-          #################
-          out<-c(out,F1ONT)
-          out<-c(out,IK)
-          out<-c(out,FINCH)
+          ##################################
+          IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+          GVOF=getOntFromSMI(IK,InMEDA)
+	  out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+
           ####################
         }##else..if
-        
+        ###############################################################
       }###else...else if ..if
     }else{
-      ######check the smiles is not empty
+      ######check the smiles is not empty...PCID is empty
       ###PCSM<-SMV
-      ################################	    
+
+      print("enter the else loop ...PCID")
       SMV<-PCSM
+      ###############################
       if(!sjmisc::is_empty(SMV)){
+        #############################
         IK<-tryCatch({rinchi::get.inchi.key(SMV)},error=function(cond){message("rinchi could not fetch inchikey missing")})
         SMV1<-tryCatch({rinchi::get.inchi(SMV)},error=function(cond){message("rinchi could not fetch inchi missing")})
         IK1<-paste("INCHIKEY:",IK,sep=" ")
         FINCH<-paste("INCHI:",SMV1,sep=" ")
         #########################
         if(!sjmisc::is_empty(IK)){
-          IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(IK)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+          #############################
+          IKCRV<-tryCatch({classyfireR::get_classification(IK)},error=function(cond){message("Classifier could not fetch the information")})
+          ##################################################
           if(!sjmisc::is_empty(IKCRV)){
-            ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+            ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
             ###########################
             IK1<-paste("INCHIKEY:",IK,sep=" ")
             tes2<-paste("Ontology:",ONTV,sep=" ")
@@ -1212,66 +2212,69 @@ MaKE.ONT.REC<-function(InMEDA)
             out<-c(out,tes2)
             out<-c(out,IK1)
             out<-c(out,FINCH)
-            
+            ##################
+
           }else{
+            ########################
             ### IKCRV is empty
-            IK1<-paste("INCHIKEY:",IK,sep=" ")
-            tes2<-paste("Ontology:","",sep=" ")
-            FINCH<-paste("INCHI:",SMV1,sep=" ")
-            ################
-            out<-c(out,tes2)
-            out<-c(out,IK1)
-            out<-c(out,FINCH)
-	    #################
+            IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+            ########################
+	    GVOF=getOntFromSMI(IK,InMEDA)
+	    ##########################
+	    out<-c(out,GVOF[1])
+            out<-c(out,GVOF[2])
+            out<-c(out,GVOF[3])
+            ########################
           }## end of IKCRV
-          
+
         }else if(!sjmisc::is_empty(SMV)){
-	  ################################################	
-          tes<-tryCatch({classyfireR::submit_query(label = 'query_test', input = SMV, type = 'STRUCTURE')},error=function(cond){message("Classfire not able to fetch empty")})
-          tes1<-do.call(paste, c(as.list(tryCatch({tes@classification$Classification},error=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-          tes2<-paste("Ontology:",tes1,sep=" ")
-          teIK2<-SMV1
-          ##teIK2<-tryCatch({PuInKtoSM(IK)},error=function(cond){message("PUBCHEM not able to convert inchikey to smile")})
-          ##teIK2<-tryCatch({webchem::cs_convert(IK,from="inchikey",to="inchi")},error=function(cond){message("webchecm could not fetch the info")})
-          FINCH<-paste("INCHI:",teIK2,sep=" ")
-          ########################
-          out<-c(out,tes2)
-          out<-c(out,IK1)
-          out<-c(out,FINCH)
-	  ##########################
+          ##########################################
+	  IK<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+          #######################################
+          GVOF=getOntFromSMI(IK,InMEDA)
+          ######################################
+          out<-c(out,GVOF[1])
+          out<-c(out,GVOF[2])
+          out<-c(out,GVOF[3])
+          ######################################
+          ##########################
         }else{
           ##############################################
           F1ONT<-paste("Ontology:","",sep=" ")
           if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),"InChI=")){
-            FINCH<-paste("INCHI:",as.character(InMEDA[["InChI"]]),sep=" ")
-            IK<-paste("INCHIKEY:","",sep=" ")
-            ###############
-            out<-c(out,F1ONT)
-            out<-c(out,IK)
-            out<-c(out,FINCH)
-            ###############
+            IK=tryCatch({webchem::cs_convert(as.character(InMEDA[["InChI"]]),from = "inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info inchi")})
+            ###########################
+	    GVOF=getOntFromSMI(IK,InMEDA)
+	    ######################################
+            out<-c(out,GVOF[1])
+            out<-c(out,GVOF[2])
+            out<-c(out,GVOF[3])
+            ###################
           }else{
-            FINCH<-paste("INCHI:","",sep=" ")
-            IK<-paste("INCHIKEY:",as.character(InMEDA[["InChI"]]),sep=" ")
-            ###############
-            out<-c(out,F1ONT)
-            out<-c(out,IK)
-            out<-c(out,FINCH)
-            #################################
+            ###FINCH<-paste("INCHI:","",sep=" ")
+	    FINCH<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
+            IK=stringr::str_trim(as.character(InMEDA[["InChI"]]))
+	    ###############################
+	    GVOF=getOntFromSMI(IK,InMEDA)
+	    ######################################
+            out<-c(out,GVOF[1])
+            out<-c(out,GVOF[2])
+            out<-c(out,GVOF[3])
+            ##################################
           }
-          
+        #################
         }## end of else if ...else ...if
       #########
       }
-      ##########
+    ############
     }## entering the else
-    
+  #################
   }## end of else
-##########################
+  ##########################
   return(out)
-###########################
-
+#############################
 }## end of ontology function
+
 
 
 ##########################################################################################
@@ -1313,22 +2316,6 @@ finADWC<-function(gs,dIV)
 
 
 ##########I###########################################################
-##comwithNu<-function(tes)
-##{
-  ##tes1<-c()
-  ##for(elem in tes){
-    ##if(numbers_only(elem)){
-      ##elem1=paste(elem,"*",sep="")
-      ##tes1<-c(tes1,elem1)
-    ##}else if(!sjmisc::is_empty(tryCatch({AD[AD$formula==elem,]$exactMass[1]},warning=function(cond){message("error in the database search info")}))){
-     ## val= tryCatch({AD[AD$formula==elem,]$exactMass[1]},warning=function(cond){message("error in data base search")})
-      ##tes1<-c(tes1,val)
-    ##}else{
-     ## x<-"Pass"
-   ## }
- ## }
- ## return(paste(tes1,collapse = ""))
-##}
 ########################################################################
 ########################################################################
 comwithNu<-function(elem)
@@ -1719,308 +2706,497 @@ MaKlist<-function(gFile)
 ##########################################################################################################
 NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 {
-  ################################
-  FMa<-c()
-  ################################
+  ###############################################
+       FMa<-c()
+  ###############################################
+  print("entering the NFFilter1 function")
+  #############################################
   if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
     if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
       ########################################################################
       print("enter the Inchi key AREA..inchikey is not empty")
       ########################################################################
       IK<-as.character(InMEDA[["InChI"]])
-      IK1<-tryCatch({get_cid(IK, from = "inchikey")},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
-      PCID<-tryCatch({IK1[[2]]},error=function(cond){message("Pubchem Id is empty")})
-      ########################################
-      PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-      PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
+      IK1<-tryCatch({webchem::get_cid(IK, from = "inchikey")},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
+      PCID<-tryCatch({IK1[[2]][1]},error=function(cond){message("Pubchem CID is empty")})
+      FPUCID1<-as.numeric(PCID)
+      ########################################################################
+      PCID1<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID))), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
+      ###############################################################################
+      ################################################################################
+      PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
       ##########################################################################
       ##########################################################################
-      if(!sjmisc::is_empty(PCID2))
+      if(!sjmisc::is_empty(PCID2) & (PCID2 !=0))
       {
+        #####################################      
+        print("enter the if loop...inkikey")
+        #####################################
         FMa<-c(FMa,PCID2)
+        #####################################
       }else{
-	###########################################################
-        if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
-	  ##############################################
-          IK1<-tryCatch({get_cid(IK, from = "inchi")},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
-          PCID<-tryCatch({IK1[[2]]},error=function(cond){message("Pubchem Id is empty")})
-	  #######################################
-	  #######################################
-	  PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-	  PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-	  ###################################
+        ###########################################################      
+        print("enter the else part")      
+        ###########################################################
+        if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])),'InChI=')){
+          ##############################################
+          print("enter the Inchi part ...in else loop...Inchikey")
+          ##############################################
+	  IK<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+          IK1<-tryCatch({webchem::get_cid(IK, from = "inchi")},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
+          PCID<-tryCatch({IK1[[2]][1]},error=function(cond){message("Pubchem Id is empty")})
+          #######################################
+          #########################################
+          PCID1<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID))), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
+          PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
+          ###################################
           if(!sjmisc::is_empty(PCID2)){
+            ###########################################	  
+            print("enter the if loop ...inchi area")
+            ###########################################	  
             FMa<-c(FMa,PCID2)
+            ############################################
           }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
-	    ##############################################
+            ##############################################
+            print("enter the Inchi part ...in else loop...CAS area")
+            ###############################################
             CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
             CV1<-stringr::str_replace(CV,pattern='CAS:',replacement ="")
             CV2<-stringr::str_trim(as.character(CV1))
+            #############################################
+            PCID<-tryCatch({webchem::get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){message("Pubchem Id is empty")})
+            ##########################################
+            ##########################################
+            PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID[[2]][1]), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("Pubchem CId is empty")})
+	    FPUCID1<-tryCatch({as.numeric(PCID[[2]][1])},error=function(cond){message("Pubchem CID is empty")})
+	    PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
 	    #############################################
-            PCID<-tryCatch({get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){message("Pubchem Id is empty")})
-	    #########################################
-	    ########################################
-	    PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-	    PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-	    #############################################
-            if(!sjmisc::is_empty(PCID2)){
+            #############################################
+            if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+              ###########################################	    
+              print("enter the if loop ...cas area")
+              ###########################################	    
               FMa<-c(FMa,PCID2)
+              ###########################################
             }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
-	      ######################################
-	      print("entering smiles area in InchiKey")
-	       ##################################
-              IK<-as.character(InMEDA[["SMILES"]])
-	      ######################################
-	      tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
-	      tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
-	      tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
-	      PCID2<-tryCatch({tes2},error=function(cond){message("smiles not abe to fetch")})
-	      #######################################
+              ######################################
+              print("entering smiles area in InchiKey")
+              ########################################
+              IK<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+              ########################################
+	      ########################################
+              tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
+              tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
+              tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
+              PCID2<-tryCatch({tes2},error=function(cond){message("smiles not abe to fetch")})
+              #######################################
               #######################################
               if(!sjmisc::is_empty(PCID2)){
+                ############################      
                 FMa<-c(FMa,PCID2)
+                #############################
               }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
-                FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
-	        ####################################
-	        PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CId is empty..did not get exact mass")})
-		PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})
+                ######################################
+		#########################################
+                FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
+                FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){message("FPUCID must be empty")})
+	        ######################################
+		######################################
+                PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CId is empty..did not get exact mass")})
+                PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
 		######################################
                 ######################################
-                if(!sjmisc::is_empty(PCID2)){
+                if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+                  ############################################	
+                  print("entering the if loop..Pubchem CID")
+                  ###########################################
                   FMa<-c(FMa,PCID2)
-                }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		 ########################################################
-		 EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-		 EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-		 #########################################################
-		 #########################################################
+                  ###########################################
+                }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0)
+                   {
+                  FMa<-c(FMa,as.numeric(ConvCIDtoOID1(FPUCID)[5]))
+
+               }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0)
+                   {  
+                 FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
+               }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+                  ########################################################
+                  ########################################################	
+                  EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
+                  EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CID is empty")})
+                  #########################################################
+                  #########################################################
                   if(!sjmisc::is_empty(EM1)){
                     FMa<-c(FMa,EM1)
                   }else{
-                    FMa<-c(FMa,PCID2)
+                    
+                    ########################################
+                    ########################################	  
+                    PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+                    FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),FuFtoRe1(InMEDA)))
+		    #########################################
+                    ########################################
                   }
-               ###########################
+                  ######################################
                 }else{
-                  ## formula not found and --smiles and pubchem failed to get PubchemID
-                  FMa<-c(FMa,PCID2)
+                  #####################################
+                  #####################################	
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+                  FMa<-c(FMa,PMA)
+                  ############################
+                  #############################
                 }
               }else{
                 ### PubchemId is not found ..entering the else loop
-                if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		  #########################################
-		  EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-	          EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-		  ##########################################
-	          ############################################
+                if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+                  ############################################
+                  ############################################	
+                  EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
+                  EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
+                  ############################################
+                  ############################################
                   if(!sjmisc::is_empty(EM1)){
                     ##print("formula area.....")
                     ##print(EM1)
                     FMa<-c(FMa,EM1)
                   }else{
-                    ##print("formula area empty.....")
-                    ##print(PCID2)
-                    FMa<-c(FMa,PCID2)
+                    #############################
+                    #############################		  
+                    PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})		  
+                    FMa<-c(FMa,PMA)
+                    #############################
+                    #############################
                   }
                 }
-                ###############################
+             ###############################
               }
-              ####################  PCID2 ...end ###
+            ####################  PCID2 ...end ###
             }else{
-              ################################
+              ##############################################
               ## smiles end ... not found
-              ################################
+              ###############################################
               if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
+                ###############################################
+                print("enter the CID ...area")
+                ###############################################
+                ##FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+	        ################################################
+                FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))      
+                FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){message("FPUCID value is empty")})
 		##########################################
-                FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
-	        ##########################################
-	        ##########################################
-	        PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-		PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-                ##############################
-                if(!sjmisc::is_empty(PCID2)){
-
+                ##########################################
+                PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CID is empty")})
+		################################################
+		################################################
+                PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+		##########################################
+		##########################################
+                if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+                  
                   FMa<-c(FMa,PCID2)
-                }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		 ##############################################
-		  EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-		  EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-		  ###############################
-		  ###############################
-                  if(!sjmisc::is_empty(EM1)){
+                }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+                 FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("ConvCIDtoOID1 value is empty")}))
 
+                }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty.did not get exact mass")}) !=0){
+                 FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
+
+                 }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+                  ##############################################
+                  ##############################################	
+                  EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem CID is empty")})
+                  EM1<-tryCatch({EM$exactmass},error=function(cond){message("Rdisop::getMolecule exact mass is empty")})
+                  ###############################################
+                  ###############################################
+                  if(!sjmisc::is_empty(EM1)){
+                    
                     FMa<-c(FMa,EM1)
                   }else{
-
-                    FMa<-c(FMa,PCID2)
+                    
+                    ####################################
+		    ####################################	  
+                    PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+		    #####################################
+		    ########################################
+                    FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}), tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 conversion is empty")})))
+                    ####################################
+                    ####################################
                   }
-            ###################################
+                  ######################################
                 }else{
-
-                  FMa<-c(FMa,PCID2)
+                  
+	          #################################		
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 conversion is empty")})	
+                  FMa<-c(FMa,PMA)
+                  #################################
                 }
-             #########################################
+              #########################################################
               }else{
                 ###### PubchemID is not found... so getting exact mass from
-                if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		  ########################################
-		  EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-	          EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-		  ##########################################
-	          ##########################################
+                if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+                  ############################################
+		  ############################################	
+                  EM<-tryCatch({stringr::str_trim(Rdisop::getMolecule(as.character(InMEDA[["Formula"]])))},error=function(cond){message("formula to mass conversion is empty")})
+                  EM1<-tryCatch({EM$exactmass},error=function(cond){message("Rdisop::getMolecule is empty")})
+                  ##########################################
+                  ##########################################
                   if(!sjmisc::is_empty(EM1)){
-                    ##print("formula area.....")
-                    ##print(EM1)
                     FMa<-c(FMa,EM1)
                   }else{
-                    ##print("formula area empty.....")
-                    ##print(PCID2)
-                    FMa<-c(FMa,PCID2)
+                    #############################
+                    PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 conversion is empty")})	  
+                    FMa<-c(FMa,PMA)
+                    ##############################
                   }
                 }
-                #######################################
+              #######################################
               }
-              #############################
+            #############################
             } ##end if loop Pubchem CID
-            ###########
+          ###############################
           } ### end of else ...smiles end ... not found
-          ########
+       #################################
         }else{
-          ### Inchikey end start of smiles
-          if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
-	    print("enter the smiles area ..smiles")
-	    ###########################################
-            IK<-as.character(InMEDA[["SMILES"]])
-	    ###########################################
-	    tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
-	    tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
-	    tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
-	    PCID2<-tryCatch({tes2},error=function(cond){message("smiles not abe to fetch")})
-	    ################################################
+       ### Inchikey end start of smiles##
+          if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["SMILES"]])),'not available')){
+            ###########################################
+            print("enter the smiles area ..smiles")
+            ###########################################
+            IK<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+            ###########################################
+            tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
+            tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
+            tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
+            PCID2<-tryCatch({tes2},error=function(cond){message("smiles not abe to fetch")})
+            Fval<-tryCatch({PuSmilesToEM(InMEDA[["SMILES"]])},error=function(cond){return(0)})
+            ################################################
             ################################################
             if(!sjmisc::is_empty(PCID2)){
               FMa<-c(FMa,PCID2)
+            }else if(!sjmisc::is_empty(Fval) & Fval != 0){
+              
+              FMa<-c(FMa,Fval)	    
+              
             }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
-              FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+              ######################################
+              print("enter the CID pass area ...")
+              ######################################
+              ######################################	    
+              FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
+              FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){return(NA)})
 	      ######################################
-	      ######################################
-	      PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-	      PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-              ##############################
-              if(!sjmisc::is_empty(PCID2)){
+              ######################################
+              PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CID is empty")})
+	      ########################################
+	      #########################################
+              PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+	      #######################################
+              ########################################
+              if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+                
                 FMa<-c(FMa,PCID2)
+                
+              }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+                FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID to other value is empty")}))
+              }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
+                 FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
               }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		###############################
-		EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-		EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-		###############################
+                ##################################
+                EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem CID is empty")})
+                EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CID is empty")})
+                ##################################
                 if(!sjmisc::is_empty(EM1)){
                   FMa<-c(FMa,EM1)
                 }else{
-                  FMa<-c(FMa,PCID2)
+                  ############################
+                  ############################
+		  ############################	
+                  PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem to other conversion is empty")})
+		 ###################################################################
+		 ##########################################################
+                  FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})))
+                  #############################
+                  #############################
                 }
-                ###########################
+                ################################
               }else{
                 ## formula not found and --smiles and pubchem failed to get PubchemID
-                FMa<-c(FMa,PCID2)
+                ##FMa<-c(FMa,PCID2)
+                ##############################
+                PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})      
+                FMa<-c(FMa,PMA)
+                ###############################
               }
             }else{
               ### PubchemId is not found ..entering the else loop
-              if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		############################
-		EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-                EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-    		###################################		
-	        ###################################
+              if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+                ###################################
+                ###################################      
+                EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem CID is empty")})
+                EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CID is empty")})
+                ###################################		
+                ###################################
                 if(!sjmisc::is_empty(EM1)){
-                  ##print("formula area.....")
-                  ##print(EM1)
                   FMa<-c(FMa,EM1)
                 }else{
-                  ##print("formula area empty.....")
-                  ##print(PCID2)
-                  FMa<-c(FMa,PCID2)
+                  ##############################
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+                  FMa<-c(FMa,PMA)
+                  #############################
                 }
               }
-              ####################################
+            #######################################
             }
-          ####################  PCID2 ...end ###
+          ####################  PCID2 ...end ######
           }else{
             ## smiles end ... not found
-            #######################################################
-            if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
+            ############################################################
+            if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(stringr::str_trim(InMEDA[["PubChem CID"]])),'not available')){
+              ##########################################################
+              print("enter the CID ...area ...")
+              ##########################################################
+              ##FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+              FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
+              FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){message("Convert to numeric Pubchem CID is empty")})
 	      ##########################################################
-              FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
-	      ############################
-	      PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-	      PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
+	      ##########################################################
+              PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CID is empty")})
+              ##PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem CID is empty")})
+              PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
 	      #####################################################
               #####################################################
               if(!sjmisc::is_empty(PCID2)){
-
+                
                 FMa<-c(FMa,PCID2)
-              }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-
-	        ###################################
-		EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-	        EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-	        ##################################
+                
+              }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+                FMa<-c(FMa, tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}))
+              }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
+                 FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
+              }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+                
+                ###############################################
+                EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Rdisop::getMolecule conversion is empty")})
+                EM1<-tryCatch({EM$exactmass},error=function(cond){message("Exact mass convesrsion failed")})
+                ################################################
                 if(!sjmisc::is_empty(EM1)){
-
+                  
                   FMa<-c(FMa,EM1)
                 }else{
-
-                  FMa<-c(FMa,PCID2)
+                  #################################
+                  #################################	
+                  PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+                  FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})))
+                  ##################################
+                  ##################################
                 }
-                #########################
+                #######################################
               }else{
-
-                FMa<-c(FMa,PCID2)
-              }
-              ####################################
+                ### Trying to get the exact mass from name provided
+                ########################################
+                ##PMA<-FuFtoRe(InMEDA)
+		#########################################      
+                PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})      
+                FMa<-c(FMa,PMA)
+                ########################################                
+                 }
+              ##########################################
             }else{
               ###### PubchemID is not found... so getting exact mass from
-              if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		#######################################
-		EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-	    	EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-	        ##################################
+              if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+                #######################################
+                EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("formula to exact mass conversion failed")})
+                EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CID is empty")})
+                ########################################
                 if(!sjmisc::is_empty(EM1)){
+		 ######################################	
                   ##print("formula area.....")
                   ##print(EM1)
+		  ##################################	
                   FMa<-c(FMa,EM1)
                 }else{
-                  ##print("formula area empty.....")
-                  ##print(PCID2)
-                  FMa<-c(FMa,PCID2)
+		  ####################################	
+                  #########################
+                  ##PMA<-FuFtoRe(InMEDA)
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+                  FMa<-c(FMa,PMA)
+                  #########################
                 }
-	       ###########################
+             ###############################
               } ## formula
             } ## end of else loop
           } ## end of else
         }### InCHi.. end
       } ## end of main else
-    } ### end of inchikey
-  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
-    #####################################
+    }else{
+   ###################################################	    
+      if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])),'InChI=')){
+        ##############################################
+        print("enter the Inchi part ...")
+        IK<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
+        ##############################################
+        IK1<-tryCatch({webchem::get_cid(IK, from = "inchi")},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
+        PCID<-tryCatch({IK1[[2]][1]},error=function(cond){message("Pubchem Id is empty")})
+        #########################################
+        #########################################
+        PCID1<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID))), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
+        FPUCID1<-as.numeric(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID))))
+	PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+	###########################################
+	#####################################################################################################
+        if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+          ###########################################	  
+          print("enter the if loop ...inchi area")
+          ###########################################	  
+          FMa<-c(FMa,PCID2)
+          ############################################
+        }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+           FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){return(0)}))
+        }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
+           FMa<-c(FMa, tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){return(0)})) 
+        }else if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),'InChI=') & !sjmisc::is_empty(tryCatch({CONinctoEM(InMEDA)},error=function(cond){message("Inchi to exact mass is empty")}))){
+          
+          FMa<-c(FMa,tryCatch({CONinctoEM(InMEDA)},error=function(cond){message("Inchi to exact mass is empty")}))
+        }else{
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 to exact mass is empty")})	
+          FMa<-c(FMa,PMA)
+        }
+      }else{
+        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 to exact mass is empty")})
+        FMa<-c(FMa,PMA)
+      }
+    }###end of else
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])) ,'CAS:')){
+  ###############################################
+    ##browser()	  
     print("enter the cas function area.... cas is avilable")
-    ####################################
+    ############################################
     CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
     CV1<-stringr::str_replace(CV,pattern='CAS:',replacement ="")
     CV2<-stringr::str_trim(as.character(CV1))
-    ###################################
-    PCID<-tryCatch({get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){message("Pubchem Id is empty")})
-    ###################################
-    PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-    PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-    ##############################################
-    ##############################################
-    if(!sjmisc::is_empty(PCID2)){
-
+    ############################################
+    PCID<-tryCatch({webchem::get_cid(CV2, from = "xref/rn",match="first")},error=function(cond){message("Pubchem CID is empty")})
+    #############################################
+    PCID1<-tryCatch({webchem::pc_prop(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID$cid))), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
+    ##########################################################
+    ##PCID1<-tryCatch({webchem::pc_prop(as.numeric(PCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
+    ###########################################################
+    FPUCID1<-as.numeric(as.numeric(stringr::str_trim(gsub("[[:punct:]]", "",PCID$cid))))
+    PCID2<-ifelse(!sjmisc::is_empty(tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("ExactMass in CAS empty")})),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+    ##############################################################
+    print("entering the PCID2 value")
+    print(PCID2)
+    print(!sjmisc::is_empty(PCID2))
+    #############################################################
+    if(!sjmisc::is_empty(PCID2) & (PCID2 != 0)){
+      
       FMa<-c(FMa,PCID2)
-    }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
-      ##print("enter the smiles..cas")
+      
+    }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(stringr::str_trim(as.character(InMEDA[["SMILES"]])),'not available')){
       ##########################################
-      IK<-as.character(InMEDA[["SMILES"]])
+      print("enter the smiles..in cas area")
+      ##########################################
+      ##########################################	    
+      IK<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
       tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
       tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
       tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
@@ -2028,209 +3204,336 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       ##########################################
       ##########################################
       if(!sjmisc::is_empty(PCID2)){
-
+        
         FMa<-c(FMa,PCID2)
-      }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
+        
+      }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
+	      PCID2<-ifelse(!sjmisc::is_empty(tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)})),tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)}),tryCatch({PuSmilesToEM(InMEDA[["SMILES"]])}, error = function(x) {return(0)}))
+	      ##FMa<-c(FMa,PCID2)
+	      if(!sjmisc::is_empty(PCID2) & PCID2 != 0)
+	      {
+		      FMa<-c(FMa,PCID2)
 
-        FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
-        ############################################
+	      }else{
+		      PCID2<-ifelse(!sjmisc::is_empty(tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("SMILES to exact mass is empty")})),tryCatch({CONSMItoEM(InMEDA)},error=function(cond){message("SMILES to exact mass is empty")}),ifelse(!sjmisc::is_empty(tryCatch({mzAnnotation::smileToAccurateMass(as.character(InMEDA[["SMILES"]]))}, error = function(x) {return(0)})), tryCatch({mzAnnotation::smileToAccurateMass(as.character(InMEDA[["SMILES"]]))}, error = function(x) {return(0)}), tryCatch({PuSmilesToEM(InMEDA[["SMILES"]])},error = function(x) {return(0)})))
+		      FMa<-c(FMa,PCID2)
+
+	      }
+
+      }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["PubChem CID"]])),'not available')){
+        ###############################################################
+	################################################################      
+        PCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))      
+        FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",PCID))      
+        FPUCID1<-as.numeric(FPUCID)
+	############################################
         ############################################
         PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-	PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-        ###########################################
-        if(!sjmisc::is_empty(PCID2)){
-
+        PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+	#############################################
+	###########################################
+        if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+          
           FMa<-c(FMa,PCID2)
-        }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-	  #######################################
-	  EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-	  EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-	  #########################################
-	  #########################################
-          if(!sjmisc::is_empty(EM1)){
+          
+        }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+          FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){return(0)}))
 
+        }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
+          FMa<-c(FMa,tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){return(0)}))
+
+        }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+          ##########################################
+          ##########################################
+          EM<-tryCatch({stringr::str_trim(Rdisop::getMolecule(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Formula to exact mass is empty")})
+          EM1<-tryCatch({EM$exactmass},error=function(cond){message("Exact mass is empty")})
+          #########################################
+          #########################################
+          if(!sjmisc::is_empty(EM1)){
+            
             FMa<-c(FMa,EM1)
           }else{
 
-            FMa<-c(FMa,PCID2)
+            ###################################
+            ###################################		  
+            PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+	    ##########################################################
+	    ##########################################################
+            FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}), tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})))
+            ###################################
+            ###################################
           }
-
+          
         }else{
-          ### formula not found ..exact mass
-          FMa<-c(FMa,PCID2)
+
+          ###################################
+	  print("else loop ..NAME to exact mass..")	
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+          FMa<-c(FMa,PMA)
+          #################################
         }
         #######################################
       }else{
         ##print("enter the else area ..2")
         #### PubchemID is not found
-	###################################################
-        if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-          ##########################################
-	  EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
+        ###################################################
+        if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+          ################################################
+          EM<-tryCatch({stringr::str_trim(Rdisop::getMolecule(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
           EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-	  ###########################################
-          ##########################################
+          ###########################################
+          ###########################################
           if(!sjmisc::is_empty(EM1)){
-            ##print("formula area.....")
-            ##print(EM1)
+            ####################################
             FMa<-c(FMa,EM1)
+            ############################
           }else{
-            ##print("formula area empty.....")
-            ##print(PCID2)
-            FMa<-c(FMa,PCID2)
+            #############################
+            PMA<tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
+            #########################	  
+            ##PMA<-FuFtoRe(InMEDA)
+	    ##########################
+            FMa<-c(FMa,PMA)
+            ###########################
           }
         }
-        ##########################
+        #######################################
       }
-      ############## Smiles is empty and Pubchem CID
+    ############## Smiles is empty and Pubchem CID
     }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
-
-      FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
-      ###############################
+      ########################################################
+      print("entering the pubchemCID area")
+      #########################################################
+      PCID<-as.character(InMEDA[["PubChem CID"]])	    
+      FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",PCID))
+      FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){return(0)})      
+      #########################################################
       PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-      PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
+      ###############################################
+      ###############################################
+      PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
       ##################################
       ##################################
-      if(!sjmisc::is_empty(PCID2)){
-
+      if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+        
         FMa<-c(FMa,PCID2)
+        
+      }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+        FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){return(0)}))
+
+      }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
+        FMa<-c(FMa,tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){return(0)}))
+
       }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
         #####################################
-	EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
+        #####################################      
+        EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
         EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-	####################################
+        ####################################
         ####################################
         if(!sjmisc::is_empty(EM1)){
-
+          
           FMa<-c(FMa,EM1)
         }else{
-
-          FMa<-c(FMa,PCID2)
+          
+          ####################################
+          PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+	  ####################################
+          ###FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),0))
+	  ##################################################
+          FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}), tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})))
+          ########################################
+          ########################################
         }
-	##############################
-
+        ####################################
+        ####################################
+        
       }else{
         print("entering Pubchem CID else loop---not got excat mass from pubchem CID")
-        print(FPUCID)
-        FMa<-c(FMa,PCID2)
-      }
+        #######################
+        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
+        FMa<-c(FMa,PMA)
+        ######################
+        
+      }###end of else
       #######################################
     }else{
-      ##print("enter the else area ..2")
+      ##print("enter the else area ..pubcehm CID not found")
       #### PubchemID is not found
-      if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-	##############################
-	EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
+      if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]])))  & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+        #########################################
+        #########################################      
+        EM<-tryCatch({stringr::str_trim(Rdisop::getMolecule(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
         EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-	########################################
-        ###################################
+        ########################################
+        ########################################
         if(!sjmisc::is_empty(EM1)){
-          ##print("formula area.....")
-          ##print(EM1)
+          
           FMa<-c(FMa,EM1)
+          
         }else{
-          ##print("formula area empty.....")
-          ##print(PCID2)
-          FMa<-c(FMa,PCID2)
+          ############################
+          ############################		
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+          FMa<-c(FMa,PMA)
+          #############################
+	  #############################
+          
         }
-	################################
+        ################################
       }else{
-        FMa<-c(FMa,PCID2)
+        ###############################
+	###############################      
+        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})      
+        FMa<-c(FMa,PMA)
+        ###############################
+	###############################
+        
       }
-    }
-  }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
-	  print("enter smiles area --2")
+    }###end of else loop 
+  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["SMILES"]])),'not available')){
+  ##########################################
+    print("enter smiles area --2")
     #######################################
-    IK<-as.character(InMEDA[["SMILES"]])
-    IK1<-tryCatch({get_cid(IK, from = "smiles")},error=function(cond){message("smiles not abe to fetch")})
-    PCID<-tryCatch({IK1[[2]]},error=function(cond){message("Pubchem Id is empty")})
+    IK<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
+    IK1<-tryCatch({webchem::get_cid(IK, from = "smiles")},error=function(cond){message("smiles not abe to fetch")})
+    PCID<-tryCatch({IK1[[2]][1]},error=function(cond){message("Pubchem Id is empty")})
     ########################### changing the smiles part to get exact mass
     tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
     tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
     tes2<-tryCatch({rcdk::get.exact.mass(tes1)},error=function(cond){message("smiles not abe to fetch")})
     PCID2<-tryCatch({tes2},error=function(cond){message("smiles not abe to fetch")})
+    Fval<-tryCatch({PuSmilesToEM(InMEDA[["SMILES"]])},error=function(cond){return(0)})
     #######################################
     #######################################
     if(!sjmisc::is_empty(PCID2)){
       print("enter the if loop ..smiles")
-      ##print("checking if entering this area")
-      print(PCID2)
+      
       FMa<-c(FMa,PCID2)
+      
+    }else if(!sjmisc::is_empty(Fval) & Fval != 0){
+      
+      FMa<-c(FMa,Fval)
+      
     }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
-	    ########################################
-	    print("enter the pubchem CID ..smiles area ..meaning smiles are there and not able to get exact mass..pubchem CID is avilable")
-      ##########################################
+      ############################################
+      print("enter the pubchem CID ..smiles area ..meaning smiles are there and not able to get exact mass..pubchem CID is avilable")
+      #############################################
       FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
-      ##########################################
+      FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){return(0)})
+      ###########################################
       ###########################################
       PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-      PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-      #######################################
-      print("entering the pubchem CID")
-      print(FPUCID)
+      PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+      ###########################################
       ########################################
-      if(!sjmisc::is_empty(PCID2)){
+      if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+        
         FMa<-c(FMa,PCID2)
-      }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-	      print("enter the if pubchem CID ..else if..")
-	##############################
-	EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-	EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-	##################################
-	#################################
-        ##print(EM1)
+        
+      }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+        FMa<-c(FMa,as.numeric(ConvCIDtoOID1(FPUCID)[5]))
+       }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
+         FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
+       }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+        print("enter the if pubchem CID ..else if..")
+        ##################################
+        ##################################
+        EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
+        EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
+        ##################################
+        ##################################
         if(!sjmisc::is_empty(EM1)){
+          
           FMa<-c(FMa,EM1)
+          
         }else{
-		print("enter the pubchem CID area ..else part in else if..that means formula is empty")
-          FMa<-c(FMa,PCID2)
+          print("enter the pubchem CID area ..else part in else if..that means formula is empty")
+          
+          ###################################
+          ###################################
+          PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+          FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),FuFtoRe1(InMEDA)))
+          ###################################
+          ###################################
         }
-       ##################################
-
+        #####################################
+        #####################################
       }else{
-	      print("enter the pubchem CID area...else ...that means neither formula ...nothing is avilable for Pubchem CID")
-        FMa<-c(FMa,PCID2)
+        ### formula not aviable ...else for ..else if else
+        print("enter the pubchem CID area...else ...that means neither formula ...nothing is avilable for Pubchem CID")
+        ######################################
+        #####################################
+        PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+	#####################################
+	######################################
+        FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),FuFtoRe1(InMEDA)))
+        ######################################
+        ######################################
       }
-      ####################################
-
+      #########################################
+      
     }else{
-	    #### Pubchem CID #########################
-	    print("entering the else part---smiles ... will check formula...for exact mass")
-	    ##########################################
-	    if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-		    #######################
-		    EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
-		    EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-		    ##################################
-		    ##EM1<-OrgMassSpecR::MolecularWeight(formula = OrgMassSpecR::ListFormula(as.character(InMEDA[["Formula"]])))
-		    if(!sjmisc::is_empty(EM1)){
-			    FMa<-c(FMa,EM1)
-			    }else{
-				    FMa<-c(FMa,PCID2)
-		    }
+      #### Pubchem CID #########################
+      print("entering the else part---smiles ... will check formula...for exact mass")
+      ##########################################
+      if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+        ##################################
+        EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
+        EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
+        ##################################
+        
+        if(!sjmisc::is_empty(EM1)){
 
+          FMa<-c(FMa,EM1)
 
-	    }else{
-		    FMa<-c(FMa,PCID2)
-	    }
-	    ###########################################
+        }else{
+          
+          ##########################
+          ##PMA<-FuFtoRe(InMEDA)
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})	
+          FMa<-c(FMa,PMA)
+          ##########################
+        }
+        
+        
+      }else{
+        ##############################
+	##############################      
+        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})      
+        FMa<-c(FMa,PMA)
+        ##############################
+	##############################
+      }
+      ###########################################
     }
-  ###########################################
+ ################################################
   }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
-    ####################################
+    ########################################
     print("entering the Pubchem CID area")
-    ################################
-    FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
-    ##############################
-    PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
-    PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
-    ###################################
-    print("the exact mass of Pubchem CID")
-    print(PCID2)
-    ###################################
-    if(!sjmisc::is_empty(PCID2)){
-      print("entering the if loop")
+    #######################################
+    ##FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+    #######################################
+    FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
+    FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){return(0)})
+    #########################################
+    #######################################
+    PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CID is empty")})
+    ########################################
+    ########################################
+    PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+    ########################################
+    ########################################
+    if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
+      print("entering the if loop...PCID2")
       FMa<-c(FMa,PCID2)
+    }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
+        FMa<-c(FMa,as.numeric(ConvCIDtoOID1(FPUCID)[5]))
+      }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
+          FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
+        }else if(!sjmisc::is_empty(PCID2) & !sjmisc::is_empty(tryCatch({CONcidtoEM(InMEDA)},error=function(cond){message("some mistake happened in indexes")}))){
+      ####FMa<-c(FMa,as.numeric(as.character(InMEDA[["Exact mass"]])))
+          FMa<-c(FMa,tryCatch({CONcidtoEM(InMEDA)},error=function(cond){return(0)}))
     }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
       ##############################
       EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
@@ -2241,36 +3544,98 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       if(!sjmisc::is_empty(EM1)){
         FMa<-c(FMa,EM1)
       }else{
-        FMa<-c(FMa,EM1)
+        
+        #####################################
+        #####################################      
+        PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
+        #########################################
+        #########################################
+        FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),FuFtoRe1(InMEDA)))
+        #######################################
+        #######################################
       }
-
+      
     }else{
       print("entering the else of Pubchem CID")
-      FMa<-c(FMa,EM1)
+      print("entering this new....in the else part")
+      ##############################
+      ##############################
+      PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})
+      FMa<-c(FMa,PMA)
+      ##############################
+      ##############################
     }
     ################################
-
+    
   }else{
-     #################################	  
-    if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
-      #################################
-      EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
+    ###################################
+    print("pubchem CID is  not available ...so checking formula..adding new code")
+   #######################################################
+   #######################################################   
+      if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
+      #######################################################
+      EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
       EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
-      #########################
+      ########################################################
       if(!sjmisc::is_empty(EM1)){
+        print("this is entering the formula if loop...")      
         FMa<-c(FMa,EM1)
       }else{
-        FMa<-c(FMa,EM1)
-      }
-    }else{
-      print("this is entering the formula else in final else loop")
-      print(EM1)
-      FMa<-c(FMa,EM1)
-    }
-  ##############################
-  }
-
+        print("adding this new code here")
+        ###############################################################
+        ###############################################################
+        if(!sjmisc::is_empty(as.character(InMEDA[["Name"]])) & !startsWith(as.character(InMEDA[["Name"]]),'not available')){
+		print("entering the name pass in the if loop")
+          GCID<-tryCatch({webchem::get_cid(stringr::str_trim(InMEDA[["Name"]]))},error=function(cond){message("name to CID value empty")})
+          GCID1<-tryCatch({GCID[[2]][1]},error=function(cond){message("Get the CID value is empty")})
+          G1CID1<-tryCatch({stringr::str_trim(gsub("[[:punct:]]", "",GCID1))},error=function(cond){message("Get the G1CID1 value is empty")})
+	  FPUCID1<-tryCatch({as.numeric(G1CID1)},error=function(cond){message("Get the G1CID1 value is empty")})
+          PCID1<-tryCatch({webchem::pc_prop(as.numeric(G1CID1), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem CId is empty..did not get exact mass")})
+	  PCID2<-ifelse(!sjmisc::is_empty(as.numeric(PCID1$ExactMass)),as.numeric(PCID1$ExactMass),ifelse(!sjmisc::is_empty(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")})),tryCatch({as.numeric(ConvCIDtoOID1(FPUCID1)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}),tryCatch({PuCIDtoEM(FPUCID1)},error=function(cond){message("Pubchem CID is empty..did not get exact mass1")})))
+	  #############################################################
+	  #############################################################
+          ########################
+          FMa<-c(FMa,PCID2)
+          ########################
+        }else{
+          ### adding this new part here 
+          ###########################
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 ..something breaks")})	
+          FMa<-c(FMa,PMA)
+          ##############################
+          ##############################
+        }### this is the end of else
+        
+      }###end of else
+      print("this is entering the formula else...that means formula not avilable... in final else loop")
+      
+      ########################################
+      ########################################
+       PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 ..something breaks1")})
+       FMa<-c(FMa,PMA)
+      ###########################################
+      ###########################################
+      
+      
+      }else{
+      ## Formula is not avilable
+        #######################################
+        #######################################
+        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 ..something breaks2")})
+        FMa<-c(FMa,PMA)
+        ##########################################
+        ##########################################
+    }### end of else
+    ##############################
+  } ### end of the else
+  ################################
+  ################################
+  return(FMa)
+  ################################
+  ################################
+  
 }
+
 
 ##print("enter the area before Ikfilter")
 #########################################################################################################
@@ -2316,7 +3681,8 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
       AAMS<-tryCatch({stringr::str_replace(AUIN2, "M",as.character(PMZ$exactmass))},error=function(cond){message("Missing adduct replacement")})
       AAMS1<-tryCatch({as.numeric(pander::evals(AAMS)[[1]]$result)},error=function(cond){message("Error in adduct replacement step")})
       #########################
-      PPm=AAMS1*(25/(1000000))
+      ##########PPm=AAMS1*(25/(1000000))
+      PPm=AAMS1*(mz_Tol/(1000000))
       #########################
       MPPmL=AAMS1-PPm
       MPPmU=AAMS1+PPm
@@ -2402,42 +3768,90 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
               F2IN1<-paste("IONMODE:",F1IN1,sep=" ")
               out<-c(out,F2IN1)
               ##################################################
-
+              IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
+              ###################################################
+              ###################################################
+              if(!sjmisc::is_empty(IKCRV)){
+                ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
+                F1ONT<-paste("Ontology:",ONTV,sep=" ")
+                out<-c(out,F1ONT)
+              }else{
+                F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})      
+                out<-c(out,F1ONT)
+              }              
+              ###############################################
+              ###############################################
+              ### Changing this part inchi ..inchikey and smiles
+              if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
+                if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
+                  FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
+                  FINCH<-paste("INCHI:",InchiV,sep=" ")
+                  out<-c(out,FINK)
+                  out<-c(out,FINCH)
+                }else{
+                  FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+                  FINCH<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHI:",as.character(InMEDA[["InChI"]])),paste("INCHI:",InchiV,sep=" "))
+                  out<-c(out,FINK)
+                  out<-c(out,FINCH)
+                }
+              }else{
+                FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+                out<-c(out,FINK)
+                FINCH<-paste("INCHI:",InchiV,sep=" ")
+                out<-c(out,FINCH)
+                
+              }
+	      ###############################################
+              FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" "))
+              ##############################################
+              ##############################################
+              out<-c(out,FSIM)
+              #################################################
+              #################################################
+              FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+              ########################################
+              FFOR1<-paste("FORMULA:",FFOR,sep=" ")
+              out<-c(out,FFOR1)
+              ########################################
+              FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
+              FINS1<-FNA[FINS]
+              FINS2<-ifelse(!sjmisc::is_empty(FINS1),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
+              out<-c(out,FINS2)
 
 	      ###################################################
-	      IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(InKeyVal)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
+	    ###  IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(InKeyVal)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
               ##IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
               ##ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
 	      #################################################
-              if(!sjmisc::is_empty(IKCRV)){
-		      ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-		      F1ONT<-paste("Ontology:",ONTV,sep=" ")
-		      out<-c(out,F1ONT)
-	      }else{
-		      F1ONT<-paste("Ontology:","",sep=" ")
-		      out<-c(out,F1ONT)
-	      }
+             ### if(!sjmisc::is_empty(IKCRV)){
+		###      ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
+		   ###   F1ONT<-paste("Ontology:",ONTV,sep=" ")
+		   ###   out<-c(out,F1ONT)
+	     ### }else{
+		###      F1ONT<-paste("Ontology:","",sep=" ")
+		  ###    out<-c(out,F1ONT)
+	     ### }
 
 	      #############################################
               ##F1ONT<-paste("Ontology:",ONTV,sep=" ")
               ##out<-c(out,F1ONT)
               ############################################
-              print("enter the line ...1878")
+              ###print("enter the line ...1878")
 	      ############################################
-              FINK<-paste("INCHIKEY:",tryCatch({IK$inchikey},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
-              out<-c(out,FINK)
-              FINCH<-paste("INCHI:",InchiV,sep=" ")
-              out<-c(out,FINCH)
-              FSIM<-paste("SMILES:",SM1,sep=" ")
-              out<-c(out,FSIM)
+              ###FINK<-paste("INCHIKEY:",tryCatch({IK$inchikey},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+              ###out<-c(out,FINK)
+              ##FINCH<-paste("INCHI:",InchiV,sep=" ")
+              ###out<-c(out,FINCH)
+              ###FSIM<-paste("SMILES:",SM1,sep=" ")
+              ###out<-c(out,FSIM)
               ##############################
-              FFOR<-FM$formula
-              FFOR1<-paste("FORMULA:",FFOR,sep=" ")
-              out<-c(out,FFOR1)
+              ###FFOR<-FM$formula
+             ### FFOR1<-paste("FORMULA:",FFOR,sep=" ")
+              ###out<-c(out,FFOR1)
               #############################
-              FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
-              FINS1<-FNA[FINS]
-              out<-c(out,FINS1)
+              ###FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
+              ###FINS1<-FNA[FINS]
+              ###out<-c(out,FINS1)
               ############################
               FAUT<-as.character(InMEDA[["Authors"]])
               FAUT1<-paste("AUTHORS:",FAUT,sep=" ")
