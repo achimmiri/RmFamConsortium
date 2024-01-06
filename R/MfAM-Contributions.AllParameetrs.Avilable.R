@@ -3795,8 +3795,6 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
     InchiV<-ifelse(!sjmisc::is_empty(IN),tryCatch({IN},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get.inchi(SM1)},error=function(cond){return(NA)}))
     ##########################################
     ##########################################
-    InchiV<-ifelse(!sjmisc::is_empty(IN),tryCatch({IN},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get.inchi(SM1)},error=function(cond){return(NA)}))
-    ##########################################
     AUIN<-stringr::str_trim(as.character(InMEDA[["Adduct"]]))
     ##########################################
     InKeyVal<-ifelse(!sjmisc::is_empty(IK),tryCatch({IK},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get.inchi.key(SM1)},error=function(cond){return(NA)}))
@@ -4383,7 +4381,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
                   out<-c(out,Fpea2)      
                   #################################      
                   
-                }
+                }##end of the if loop Np >= 60
                 
             ####################################
               }### End of the else,F2NPA
