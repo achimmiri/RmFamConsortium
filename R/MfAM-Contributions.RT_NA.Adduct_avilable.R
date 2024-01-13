@@ -4881,8 +4881,6 @@ mMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA
 	      ###################################
               MONMS=InMSPL[INLL]
 	      ############# commenting the oronal code
-              ##TRA<-unname(rapply(MONMS, function(x) grep("RETENTIONTIME:",x, value=TRUE)))
-              ##TRA1<-as.numeric(stringr::str_trim(stringr::str_replace(TRA, "RETENTIONTIME:", "")))
               ##TRA2<-abs(VRT-TRA1)
               ##TRA3<-which.min(TRA2)
 	      ################# adding this new
@@ -4890,155 +4888,365 @@ mMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA
 	      TRA1<-as.numeric(stringr::str_trim(stringr::str_replace(TRA, "PRECURSORMZ:", "")))
 	      TRA2<-abs(AAMS1-TRA1)
 	     ##############################
-	      TRA3<-which.min(TRA2)
+	      TRA3<-which(TRA2==min(TRA2[TRA2 > 0]))
+	      ###TRA3<-which.min(TRA2)
 	     ############################## 
-              TRA4<-INLL[TRA3]
+              ####TRA4<-INLL[TRA3]
+              ###TRA5<-InMSPL[TRA4]
+              #############################
+	      NPV1=unname(rapply(MONMS, function(x) grep("Num Peaks:",x, value=TRUE)))
+              NPV=as.numeric(stringr::str_trim(stringr::str_replace(NPV1, "Num Peaks:", "")))
+              ##################################
+              NPNZ=which(NPV!=0)
+              NTRA3<-intersect(TRA3,NPNZ)
+              TRA4<-INLL[NTRA3]
+              ##########################
               TRA5<-InMSPL[TRA4]
-              #######################
+              ###########################
               F1FPL<-TRA5
-              ####################
-              SM1<-as.character(InMEDA[["SMILES"]])
+              ###########################
+              SM<-as.character(InMEDA[["SMILES"]])
+	      #############################
+	      SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_
+empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),"NA"))
+	      ###########################
               #InMEDA[["SMILES"]]<-SM1
               #InMEDA[["PubChem CID"]]<-CID5
-              #####################
+              #########################
               F2FPL<-F1FPL
-              ######################
+              #########################
               Find<-tryCatch({length(F2FPL[[1]])},error=function(cond){message("List value is empty")})
               ########################
               FNA<-tryCatch({F1FPL[[1]]},error=function(cond){message("List value is empty")})
               ########################### adding this new
-	      ##print(FNA)
-	      ###########################################
+	      PT1<-c("Num Peaks:","NumPeaks:")
+              FNPA<-tryCatch({grep(paste(PT1,collapse="|"), FNA)},error=function(cond){message("Num value is empty")})
+              F1NPA<-FNA[FNPA]
+              F2NPA<-as.numeric(stringr::str_trim(gsub("Num Peaks:|NumPeaks:","",F1NPA)))
+              ###############################
+              ################################
+              Fpea<-FNA[(FNPA+1):Find]
+              Fpea1<-Fpea[!is.na(Fpea)]
+              Fpea2<-PeakVali(Fpea1)
+              Np<-F2NPA
 	      ############################################
+              ############################################
               PT <- c("PRECURSORTYPE:", "ADDUCTIONNAME:")
               NPT<-tryCatch({grep(paste(PT,collapse="|"), FNA, value=TRUE)},error=function(cond){message("List value is empty")})
               NPT1<-tryCatch({match(NPT,FNA)},error=function(cond){message("List value is empty")})
               PTV <-tryCatch({stringr::str_remove(FNA[NPT1],c("PRECURSORTYPE:","ADDUCTIONNAME:"))},error=function(cond){message("List value is empty")})
               PTV1<-tryCatch({PTV[1]},error=function(cond){message("List value is empty")})
               PTV2<-tryCatch({stringr::str_trim(PTV1)},error=function(cond){message("List value is empty")})
-	      P1TV2<-tryCatch({stringr::str_trim(gsub("ADDUCTIONNAME:","",PTV2))},error=function(cond){message("List value is empty")})
-              PTV3<-tryCatch({paste("PRECURSORTYPE:",PTV2)},error=function(cond){message("List value is empty")})
-	      ####################################
-	      print("enter my test...4")
-              print(P1TV2)
-              print(as.character(InMEDA[["Adduct"]]))
-              ######################## adding this new
-              if(identical(P1TV2,as.character(InMEDA[["Adduct"]]))){
-                ##if(!sjmisc::is_empty(AUIN) & !sjmisc::is_empty(FMWFS1)){
-                ########################
-                FNA1<-which(stringi::stri_detect_fixed(FNA,"NAME:"))
-                FNA2<-InMEDA[["Name"]]
-                FNA3<-as.character(FNA2)
-                ######################
-                FNAM<-paste("NAME:",FNA3,sep=" ")
-                out<-c(out,FNAM)
-                ######################
-                FRA1<-which(stringi::stri_detect_fixed(FNA,"RETENTIONTIME:"))
-                F1RA1<-FNA[FRA1]
-                out<-c(out,F1RA1)
-                ################################
-                FMZ1<-which(stringi::stri_detect_fixed(FNA,"PRECURSORMZ:"))
-                F1MZ1<-FNA[FMZ1]
-                out<-c(out,F1MZ1)
-                ################################
-                FPT1<-which(stringi::stri_detect_fixed(FNA,"PRECURSORTYPE:"))
-                F1PT1<-FNA[FPT1]
-                out<-c(out,PTV3)
-                #out<-c(out,F1PT1)
-                #############################
-                FIN1<-InMEDA[["Ionization mode"]]
-                F1IN1<-as.character(FIN1)
-                F2IN1<-paste("IONMODE:",F1IN1,sep=" ")
-                out<-c(out,F2IN1)
-                ###################################
-		IKCRV<-tryCatch({res <- R.utils::withTimeout({classyfireR::get_classification(InKeyVal)}, timeout=1.08, onTimeout="warning")}, warning=function(ex) {message("Classifier not able to fetch information")})
-                ##ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-		###################################
-		if(!sjmisc::is_empty(IKCRV)){
-			ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
-			F1ONT<-paste("Ontology:",ONTV,sep=" ")
-			out<-c(out,F1ONT)
-		}else{
-			F1ONT<-paste("Ontology:","",sep=" ")
-			out<-c(out,F1ONT)
+              P1TV2<-tryCatch({stringr::str_trim(gsub("ADDUCTIONNAME:","",PTV2))},error=function(cond){message("List value is empty")})
+              PTV3<-tryCatch({paste("PRECURSORTYPE:",P1TV2)},error=function(cond){message("List value is empty")})
+	      ###############################################
+	      ###############################################
+	      if((!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))) & (F2NPA != 0)){
+	      ###########################################
+  	      ###########################################
+  	      	FNA1<-which(stringi::stri_detect_fixed(FNA,"NAME:"))
+  		FNA2<-InMEDA[["Name"]]
+  		FNA3<-as.character(FNA2)
+  		######################
+  		FNAM<-paste("NAME:",FNA3,sep=" ")
+  		out<-c(out,FNAM)
+  		######################
+  		FRA1<-which(stringi::stri_detect_fixed(FNA,"RETENTIONTIME:"))
+  		F1RA1<-FNA[FRA1]
+  		out<-c(out,F1RA1)
+  		################################
+  		#################################
+  		NAT<-as.character(InMEDA[["Adduct"]])
+  		NAT1<-paste("PRECURSORTYPE:",NAT,sep=" ")
+  		out<-c(out,NAT1)
+  		################################
+ 		#############################
+  		FIN1<-InMEDA[["Ionization mode"]]
+  		F1IN1<-as.character(FIN1)
+  		F2IN1<-paste("IONMODE:",F1IN1,sep=" ")
+  		out<-c(out,F2IN1)
+  		###################################
+  		IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
+  		###################################
+  		###################################
+  		if(!sjmisc::is_empty(IKCRV)){
+    			ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
+    			F1ONT<-paste("Ontology:",ONTV,sep=" ")
+    			out<-c(out,F1ONT)
+  		}else{
+    			F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
+    			out<-c(out,F1ONT)
+  		}
+  		###################################
+  		##################################
+  		if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(
+    as.character(InMEDA[["InChI"]]),'InChI=')){
+    			if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
+      				FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
+      				FINCH<-paste("INCHI:",IN,sep=" ")
+      				out<-c(out,FINK)
+      				out<-c(out,FINCH)
+    			}else{
+      				FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+      				FINCH<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHI:",as.character(InMEDA[["InChI"]])),paste("INCHI:",IN,sep=" "))
+      				out<-c(out,FINK)
+      				out<-c(out,FINCH)
+    			}
+  		}else{
+    			FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+    			out<-c(out,FINK)
+    			FINCH<-paste("INCHI:",IN,sep=" ")
+    			out<-c(out,FINCH)
+  		}
+  		#######################################
+  		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=
+                                                                                                                                                                           " "))
+
+  		out<-c(out,FSIM)
+  		########################################
+  		print("enter the smiles value")
+  		print(FSIM)
+  		print(stringr::str_trim(as.character(InMEDA[["SMILES"]])))
+  		########################################
+  		########################################
+  		FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RC
+   hemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+  		#########################################
+  		#########################################
+  		FFOR1<-paste("FORMULA:",FFOR,sep=" ")
+  		out<-c(out,FFOR1)
+  		###############################
+  		FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
+  		FINS1<-FNA[FINS]
+  		FINS2<-ifelse(!sjmisc::is_empty(stringr::str_trim(gsub("INTENSITY:","",FINS1))),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
+  		out<-c(out,FINS2)
+  		#############################
+  		FAUT<-as.character(InMEDA[["Authors"]])
+  		FAUT1<-paste("AUTHORS:",FAUT,sep=" ")
+  		out<-c(out,FAUT1)
+  		#############################
+  		##FLIC<-paste("LICENSE:",sep=" ")
+  		FLIC<-paste("LICENSE:","CC BY",sep=" ")
+  		out<-c(out,FLIC)
+  		#############################
+  		FCIE<-paste("COLLISIONENERGY:",as.character(InMEDA[["Collision energy"]]),sep=" ")
+  		out<-c(out,FCIE)
+  		############################
+  		FINST<-as.character(InMEDA[["INSTRUMENT_TYPE"]])
+  		FINST1<-paste("INSTRUMENTTYPE:",FINST,sep=" ")
+  		out<-c(out,FINST1)
+  		##########################
+  		FINS<-as.character(InMEDA[["INSTRUMENT"]])
+  		FINS1<-paste("INSTRUMENT:",FINS,sep=" ")
+  		out<-c(out,FINS1)
+  		########################
+  		##FCOM<-paste("COMMENT:")
+  		FCOM<-paste("COMMENT:",as.character(InMEDA[["Confidence"]]),sep=" ")
+  		out<-c(out,FCOM)
+ 		#######################
+  		PT1<-c("Num Peaks:","NumPeaks:")
+  		FNPA<-tryCatch({grep(paste(PT1,collapse="|"), FNA)},error=function(cond){message("Num value is empty")})
+  		F1NPA<-FNA[FNPA]
+  		F2NPA<-as.numeric(stringr::str_trim(gsub("Num Peaks:|NumPeaks:","",F1NPA)))
+  		############################
+  		############################
+  		Np<-F2NPA
+  		Fpea<-FNA[(FNPA+1):Find]
+  		Fpea1<-Fpea[!is.na(Fpea)]
+  		Fpea2<-PeakVali(Fpea1)
+  		#########################
+  		if(F2NPA != 0)
+    		#############################
+  		{
+    			MV=AAMS1
+    			tes1<-unlist(strsplit(Fpea, "\t|\t\t"))
+    			tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
+    			tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
+    			tes4<-which(tes2 > (3+MV))
+    			NTES4<-which(tes3 <= 100)
+
+    			NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:5])))
+    			NTES<-c(NTES4,tes4)
+			##############
+    			if(Np >= 60)
+    			{
+
+      				TES<-Centroid(Np,tes2,tes3,tes4,NTES,NTES4,NTES5,DEFAULT_MZ_TOLERANCE,Fpea2)
+      				F1NPA<-TES[[1]]
+      				tes7<-TES[[2]]
+
+      				out<-c(out,F1NPA)
+      				out<-c(out,tes7)
+    			}else{
+      				#################################
+      				F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
+      				out<-c(out,F1NPA)
+      				out<-c(out,Fpea2)
+      				#################################
+
+    			}
+    		    ################################
+  		}### end of F2NPA
+  	     ####################################################
+	}else{
+  	########################################
+  	print("enter the part 4")
+  	####################################
+  	if((as.character(InMEDA[["Adduct"]]) == "[M]+" || as.character(InMEDA[["Adduct"]]) == "[M]-") & (F2NPA != 0)){
+    	####################
+    	print("enter the part 4..if loop")
+    	##########################
+    		FNA1<-which(stringi::stri_detect_fixed(FNA,"NAME:"))
+    		FNA2<-InMEDA[["Name"]]
+    		FNA3<-as.character(FNA2)
+    		#######################
+    		FNAM<-paste("NAME:",FNA3,sep=" ")
+    		out<-c(out,FNAM)
+    		########################
+    		FRA1<-which(stringi::stri_detect_fixed(FNA,"RETENTIONTIME:"))
+    		F1RA1<-FNA[FRA1]
+    		out<-c(out,F1RA1)
+    		################################
+    		FMZ1<-which(stringi::stri_detect_fixed(FNA,"PRECURSORMZ:"))
+    		F1MZ1<-FNA[FMZ1]
+    		out<-c(out,F1MZ1)
+    		################################
+    		NAT<-as.character(InMEDA[["Adduct"]])
+    		NAT1<-paste("PRECURSORTYPE:",NAT,sep=" ")
+    		out<-c(out,NAT1)
+    		################################
+    		#################################
+    		FIN1<-InMEDA[["Ionization mode"]]
+    		F1IN1<-as.character(FIN1)
+    		F2IN1<-paste("IONMODE:",F1IN1,sep=" ")
+    		out<-c(out,F2IN1)
+    		##################################################
+		#################################################
+    		IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
+    		###################################################
+    		#################################################
+    		if(!sjmisc::is_empty(IKCRV)){
+      			ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
+      			F1ONT<-paste("Ontology:",ONTV,sep=" ")
+      			out<-c(out,F1ONT)
+    		}else{
+      			##F1ONT<-paste("Ontology:","",sep=" ")
+      			F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
+      			out<-c(out,F1ONT)
+    		}
+
+    		############################################
+    		############################################
+    		if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
+      			if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
+        			FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
+        			FINCH<-paste("INCHI:",IN,sep=" ")
+        			out<-c(out,FINK)
+        			out<-c(out,FINCH)
+      		}else{
+        			FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+        			FINCH<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHI:",as.character(InMEDA[["InChI"]])),paste("INCHI:",IN,sep=" "))
+        			out<-c(out,FINK)
+        			out<-c(out,FINCH)
+      		}
+    	}else{
+      			FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
+      			out<-c(out,FINK)
+      			FINCH<-paste("INCHI:",IN,sep=" ")
+      			out<-c(out,FINCH)
+    		}
+    		##############################################
+    		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" "))
+
+   	 	out<-c(out,FSIM)
+    		###########################################
+    		########################################
+    		FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({
+      RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+    		FFOR1<-paste("FORMULA:",FFOR,sep=" ")
+    		out<-c(out,FFOR1)
+    		########################################
+    		FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
+    		FINS1<-FNA[FINS]
+    		FINS2<-ifelse(!sjmisc::is_empty(stringr::str_trim(gsub("INTENSITY:","",FINS1))),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
+    		out<-c(out,FINS2)
+    		############################
+    		FAUT<-as.character(InMEDA[["Authors"]])
+    		FAUT1<-paste("AUTHORS:",FAUT,sep=" ")
+    		out<-c(out,FAUT1)
+    		##########################
+    		##FLIC<-paste("LICENSE:",sep=" ")
+    		FLIC<-paste("LICENSE:","CC BY",sep=" ")
+    		out<-c(out,FLIC)
+   		 ###########################
+    		FCIE<-paste("COLLISIONENERGY:",as.character(InMEDA[["Collision energy"]]),sep=" ")
+    		out<-c(out,FCIE)
+    		#########################
+    		FINST<-as.character(InMEDA[["INSTRUMENT_TYPE"]])
+    		FINST1<-paste("INSTRUMENTTYPE:",FINST,sep=" ")
+    		out<-c(out,FINST1)
+    		########################
+    		FINS<-as.character(InMEDA[["INSTRUMENT"]])
+    		FINS1<-paste("INSTRUMENT:",FINS,sep=" ")
+    		out<-c(out,FINS1)
+    		####################
+    		FCOM<-paste("COMMENT:",as.character(InMEDA[["Confidence"]]),sep=" ")
+    		out<-c(out,FCOM)
+    		##################
+    		PT1<-c("Num Peaks:","NumPeaks:")
+    		FNPA<-tryCatch({grep(paste(PT1,collapse="|"), FNA)},error=function(cond){message("Num value is empty")})
+    		F1NPA<-FNA[FNPA]
+    		F2NPA<-as.numeric(stringr::str_trim(gsub("Num Peaks:|NumPeaks:","",F1NPA)))
+    		############################
+    		############################
+    		Np<-F2NPA
+    		Fpea<-FNA[(FNPA+1):Find]
+    		Fpea1<-Fpea[!is.na(Fpea)]
+    		Fpea2<-PeakVali(Fpea1)
+    		#########################
+    		if(F2NPA != 0)
+      		################################
+    		{
+
+      			MV=AAMS1
+      			tes1<-unlist(strsplit(Fpea, "\t|\t\t"))
+      			tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
+      			tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
+      			tes4<-which(tes2 > (3+MV))
+      			NTES4<-which(tes3 <= 100)
+
+      			NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:5])))
+      			NTES<-c(NTES4,tes4)
+
+      			if(Np >= 60)
+      			{
+
+        			TES<-Centroid(Np,tes2,tes3,tes4,NTES,NTES4,NTES5,DEFAULT_MZ_TOLERANCE,Fpea2)
+
+        			F1NPA<-TES[[1]]
+        			tes7<-TES[[2]]
+
+        			out<-c(out,F1NPA)
+        			out<-c(out,tes7)
+
+      			}else{
+        			#################################
+        			F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
+        			out<-c(out,F1NPA)
+        			out<-c(out,Fpea2)
+        			#################################
+
+      			}
+
+
+    		}## end of the else
+    	############################
+    ############################
+  		}
+  #####################
+  #####################
 		}
-		###################################
-                ###IKCRV<-classyfireR::get_classification(InKeyVal)
-                ###ONTV<-do.call(paste, c(as.list(IKCRV@classification$Classification), sep = ","))
-		##############################################
-                ##F1ONT<-paste("Ontology:",ONTV,sep=" ")
-                ##out<-c(out,F1ONT)
-                ###################################
-                FINK<-paste("INCHIKEY:",tryCatch({IK$inchikey},error=function(cond){message("Inchikey value is empty")}),sep=" ")
-                out<-c(out,FINK)
-                FINCH<-paste("INCHI:",InchiV,sep=" ")
-                out<-c(out,FINCH)
-                FSIM<-paste("SMILES:",SM1,sep=" ")
-                out<-c(out,FSIM)
-                ##############################
-                FFOR<-FM$formula
-                FFOR1<-paste("FORMULA:",FFOR,sep=" ")
-                out<-c(out,FFOR1)
-                ###############################
-                FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
-                FINS1<-FNA[FINS]
-                out<-c(out,FINS1)
-                #############################
-                FAUT<-as.character(InMEDA[["Authors"]])
-                FAUT1<-paste("AUTHORS:",FAUT,sep=" ")
-                out<-c(out,FAUT1)
-                #############################
-                ##FLIC<-paste("LICENSE:",sep=" ")
-		FLIC<-paste("LICENSE:","CC BY",sep=" ")
-                out<-c(out,FLIC)
-                #############################
-                FCIE<-paste("COLLISIONENERGY:",as.character(InMEDA[["Collision energy"]]),sep=" ")
-                out<-c(out,FCIE)
-                ############################
-                FINST<-as.character(InMEDA[["INSTRUMENT_TYPE"]])
-                FINST1<-paste("INSTRUMENTTYPE:",FINST,sep=" ")
-                out<-c(out,FINST1)
-                ##########################
-                FINS<-as.character(InMEDA[["INSTRUMENT"]])
-                FINS1<-paste("INSTRUMENT:",FINS,sep=" ")
-                out<-c(out,FINS1)
-                ########################
-                ##FCOM<-paste("COMMENT:")
-		FCOM<-paste("COMMENT:",as.character(InMEDA[["Confidence"]]),sep=" ")
-                out<-c(out,FCOM)
-                #######################
-                FNPA<-which(stringi::stri_detect_fixed(FNA,"Num Peaks:"))
-                F1NPA<-FNA[FNPA]
-                out<-c(out,F1NPA)
-                #######################
-                Fpea<-FNA[(FNPA+1):Find]
-                ########################
-                if(is.na(Fpea))
-                {
-                  Fpea1<-FNA[(FNPA+1)]
-
-
-                }else{
-
-                  MV=AAMS1
-                  tes1<-unlist(strsplit(Fpea, "\t"))
-                  tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
-                  tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
-                  tes4<-which(tes2 > (3+MV))
-                  if(length(tes4)>1)
-                  {
-                    tes5<-tes2[-tes4]
-                    tes6<-tes3[-tes4]
-                    tes7<-paste(tes5,tes6,sep="\t")
-                    out<-c(out,tes7)
-                  }else{
-                    out<-c(out,Fpea)
-
-                  }
-                }
-            ######################
-              }
-              #### need to add } to
+           ################################
            ################################
             } else{
               ##print("entering the line 750")
