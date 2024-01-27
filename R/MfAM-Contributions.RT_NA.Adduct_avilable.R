@@ -50,11 +50,14 @@ library(Rdisop)
 ##########################################################################
 args <- commandArgs(TRUE)
 ##########################################################################
+##print("enter the arguments length")
+##print(args)
+##print(length(args))
 ##########################################################################
 ### Function to check the number of arguments
 CountNumberofArgs<-function(argsV)
 {
-        if(length(argsV)==8)
+        if(length(argsV)==7)
         {
                 return(length(args))
         }else{
@@ -64,7 +67,7 @@ CountNumberofArgs<-function(argsV)
         }
 }
 ###################################################
-argsV1=ifelse(CountNumberofArgs(args) == 8,args,stop("the number of arguments are less than 8 ..please check and pass the correct arguments"))
+argsV1=ifelse(CountNumberofArgs(args) == 7,args,stop("the number of arguments are less than 8 ..please check and pass the correct arguments"))
 File1<-argsV1[1]
 mz_Tol=as.numeric(argsV1[2])
 ##RT_Tol=(as.numeric(argsV1[3])/100)
@@ -3665,42 +3668,36 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
     ###CID4<-unlist(strsplit(CID3, " "))
     ###CID5<-paste(CID4, collapse = ';')
     ##################################
-    CID<-tryCatch({webchem::get_cid(tryCatch({IINF[[1]][[1]]},error=function(cond){message("Inchikey value is empty..CID value")}),
- from = "inchikey")},error=function(cond){message("webchecm could not fetch the info from the inchikey")})
+    CID<-tryCatch({webchem::get_cid(tryCatch({IINF[[1]][[1]]},error=function(cond){message("Inchikey value is empty..CID value")}),from = "inchikey")},error=function(cond){message("webchecm could not fetch the info from the inchikey")})
     CID1<-tryCatch({CID[[2]]},error=function(cond){return(NA)})
     CID2<-tryCatch({as.character(CID1)},error=function(cond){return(NA)})
     CID3<-tryCatch({gsub("[[:punct:]]", "",CID2 )},error=function(cond){return(NA)})
     CID4<-tryCatch({unlist(strsplit(CID3, " "))},error=function(cond){return(NA)})
     TCID5<-tryCatch({paste(CID4, collapse = ';')},error=function(cond){return(NA)})
-    CID5<-ifelse(!sjmisc::is_empty(TCID5),TCID5,tryCatch({webchem::cs_convert(IK,from = "inchikey", to = "csid")},error=function(co
-nd){return(NA)}))
+    CID5<-ifelse(!sjmisc::is_empty(TCID5),TCID5,tryCatch({webchem::cs_convert(IK,from = "inchikey", to = "csid")},error=function(cond){return(NA)}))
     ##################################
-    SM<-ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({g
-ETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),ifelse(!sjmisc::is_empty(tryCatch({webchem::cs_convert(I
-N,from="inchi",to="smiles")},error=function(cond){return(NA)})),tryCatch({webchem::cs_convert(IN,from="inchi",to="smiles")},error=f
-unction(cond){return(NA)}),tryCatch({getCactus(IN,"smiles")},error=function(cond){return(NA)})))
+    SM<-ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),ifelse(!sjmisc::is_empty(tryCatch({webchem::cs_convert(IN,from="inchi",to="smiles")},error=function(cond){return(NA)})),tryCatch({webchem::cs_convert(IN,from="inchi",to="smiles")},error=function(cond){return(NA)}),tryCatch({getCactus(IN,"smiles")},error=function(cond){return(NA)})))
     ###################################	
-    SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},error=functi
-on(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smil
-es values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),tryCatch({ConvINKtoOI
-D1(IK)[3]},error=function(cond){return(NA)})))
-    ###SM<-tryCatch({webchem::cir_query(IK,"smiles")},error=function(cond){message("webchecm could not fetch the info")})
+    SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),tryCatch({ConvINKtoOID1(IK)[3]},error=function(cond){return(NA)})))
+    #####################################
+    ######SM<-tryCatch({webchem::cir_query(IK,"smiles")},error=function(cond){message("webchecm could not fetch the info")})
     ######SM1<-tryCatch({SM[[1]][1]},error=function(cond){message("smiles Information fetch error")})
     ########################### Inchi value
-    InchiV<-ifelse(!sjmisc::is_empty(IN),tryCatch({IN},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get
-.inchi(SM1)},error=function(cond){return(NA)}))
+    InchiV<-ifelse(!sjmisc::is_empty(IN),tryCatch({IN},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get.inchi(SM1)},error=function(cond){return(NA)}))
+    ##########################################
     ######InchiV<-tryCatch({rinchi::get.inchi(SM1)},error=function(cond){message("webchecm could not fetch the info")})
     ############################
     AUIN<-stringr::str_trim(as.character(InMEDA[["Adduct"]]))
     ####AUIN<-as.character(InMEDA[["Adduct"]])
     ############################
-    InKeyVal<-ifelse(!sjmisc::is_empty(IK),tryCatch({IK},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::g
-et.inchi.key(SM1)},error=function(cond){return(NA)}))
-    ###################
+    InKeyVal<-ifelse(!sjmisc::is_empty(IK),tryCatch({IK},error=function(cond){message("Inchi value is empty")}),tryCatch({rinchi::get.inchi.key(SM1)},error=function(cond){return(NA)}))
+    ###############################
     IN<-InchiV
+    #############################
     ####InKeyVal<-tryCatch({IK$inchikey},error=function(cond){message("InchiKey is empty")})
     ############################
     if(!sjmisc::is_empty(AUIN) & !sjmisc::is_empty(PMZ)){
+      ##################################	    
       #if(length(AUIN) > 0 & !is.na(PMZ) ){
       ##########################
       AUIN1<-tryCatch({qdapRegex::ex_between(AUIN, "[", "]")[[1]]},error=function(cond){message("Adduct value is missing")})
@@ -3851,7 +3848,6 @@ et.inchi.key(SM1)},error=function(cond){return(NA)}))
               FINS1<-FNA[FINS]
               FINS2<-ifelse(!sjmisc::is_empty(FINS1),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
               out<-c(out,FINS2)
-
 	      ###################################################
               ############################
               FAUT<-as.character(InMEDA[["Authors"]])
@@ -3927,7 +3923,7 @@ et.inchi.key(SM1)},error=function(cond){return(NA)}))
                 }
 
               } ### end of else Fea, F2npa
-	      ######################################
+	      ###########################################
 	      ##########################################
                }else{
 		    ### tHIS IS THE NEWLY ADDED ELSE LOOP TO THIS CODE   
@@ -3965,36 +3961,29 @@ et.inchi.key(SM1)},error=function(cond){return(NA)}))
                 out<-c(out,F2IN1)
                 ###################################################
                 ###################################################
-                IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fe
-cth the information")})
+                IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
                 ###################################################
                 ###################################################
                 if(!sjmisc::is_empty(IKCRV)){
-                  ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Cla
-ssifier could not fecth the information")})), sep = ";"))
+                  ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
                   F1ONT<-paste("Ontology:",ONTV,sep=" ")
                   out<-c(out,F1ONT)
                 }else{
-                  F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the informatio
-n")})
+                  F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
                   out<-c(out,F1ONT)
                 }
                 
                 #############################################
                 #############################################
-                if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available'
-) & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
-                  if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){messa
-ge("inchikey..file must be empty")})){
-                    FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]
-])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
+                if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
+                  if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
+                    FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
                     FINCH<-paste("INCHI:",InchiV,sep=" ")
                     out<-c(out,FINK)
                     out<-c(out,FINCH)
                   }else{
                     FINK<-paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
-                    FINCH<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHI:",as.character(InMEDA[["InChI"]])
-),paste("INCHI:",InchiV,sep=" "))
+                    FINCH<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHI:",as.character(InMEDA[["InChI"]])),paste("INCHI:",InchiV,sep=" "))
                     out<-c(out,FINK)
                     out<-c(out,FINCH)
                   }
@@ -4005,18 +3994,13 @@ ge("inchikey..file must be empty")})){
                   out<-c(out,FINCH)
                 }
 		##############################################
-                FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),stringr::str_trim(as.character(
-InMEDA[["SMILES"]])),SM1)
+                FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),stringr::str_trim(as.character(InMEDA[["SMILES"]])),SM1)
                 #############################################
                 #############################################
                 out<-c(out,FSIM)
                 ############################################
                 ############################################
-                FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rc
-dk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=fun
-ction(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"
-]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=funct
-ion(cond){return(NA)})))
+                FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
                 ###########################################
                 ###########################################
                 FFOR1<-paste("FORMULA:",FFOR,sep=" ")
@@ -4024,8 +4008,7 @@ ion(cond){return(NA)})))
                 #######################################
                 FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
                 FINS1<-FNA[FINS]
-                FINS2<-ifelse(!sjmisc::is_empty(stringr::str_trim(gsub("INTENSITY:","",FINS1))),FINS1,paste("INTENSITY:",sample(100
-:200,1),sep=""))
+                FINS2<-ifelse(!sjmisc::is_empty(stringr::str_trim(gsub("INTENSITY:","",FINS1))),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
                 out<-c(out,FINS2)
                 ###############################
                 FAUT<-as.character(InMEDA[["Authors"]])
@@ -4151,12 +4134,10 @@ ion(cond){return(NA)})))
             PT <- c("PRECURSORTYPE:", "ADDUCTIONNAME:")
             NPT<-tryCatch({grep(paste(PT,collapse="|"), FNA, value=TRUE)},error=function(cond){message("List value is empty")})
             NPT1<-tryCatch({match(NPT,FNA)},error=function(cond){message("List value is empty")})
-            PTV <-tryCatch({stringr::str_remove(FNA[NPT1],c("PRECURSORTYPE:","ADDUCTIONNAME:"))},error=function(cond){message("List
- value is empty")})
+            PTV <-tryCatch({stringr::str_remove(FNA[NPT1],c("PRECURSORTYPE:","ADDUCTIONNAME:"))},error=function(cond){message("List value is empty")})
             PTV1<-tryCatch({PTV[1]},error=function(cond){message("List value is empty")})
             PTV2<- tryCatch({stringr::str_trim(PTV1)},error=function(cond){message("List value is empty")})
-            P1TV2<-tryCatch({stringr::str_trim(gsub("ADDUCTIONNAME:","",PTV2))},error=function(cond){message("List value is empty")
-})
+            P1TV2<-tryCatch({stringr::str_trim(gsub("ADDUCTIONNAME:","",PTV2))},error=function(cond){message("List value is empty")})
             PTV3 <- tryCatch({paste("PRECURSORTYPE:",P1TV2)},error=function(cond){message("List value is empty")})
 	    ######################
             if((!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))) & (F2NPA != 0)){   
@@ -4201,8 +4182,10 @@ ion(cond){return(NA)})))
               }
 	      ##############################################	     
               ##############################################
-              if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.c
-haracter(InMEDA[["InChI"]]),'InChI=')){
+	      ##print("checking if it is entering this area")
+	      ###print(4188)
+	      ###############################################
+              if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
                 if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
                   FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey
  value is empty")}) ,sep=" "))
@@ -4229,9 +4212,7 @@ haracter(InMEDA[["InChI"]]),'InChI=')){
               #############################################
               out<-c(out,FSIM)     
               #################################
-	      FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemM
-ass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({g
-etCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+	      FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
               ###FFOR<-FM$formula
               FFOR1<-paste("FORMULA:",FFOR,sep=" ")
               out<-c(out,FFOR1)
@@ -4362,8 +4343,7 @@ etCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCat
     			#####################################################
     			if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
       				if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
-        				FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchik
-ey value is empty")}) ,sep=" "))
+        				FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
         				FINCH<-paste("INCHI:",InchiV,sep=" ")
         				out<-c(out,FINK)
         				out<-c(out,FINCH)
@@ -4380,8 +4360,7 @@ ey value is empty")}) ,sep=" "))
       				out<-c(out,FINCH)
     			}
     			#######################################
-    			FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep="
-"))
+    			FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=""))
     			out<-c(out,FSIM)
     			####################################
     			####################################
@@ -4536,12 +4515,10 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
 	      SM<-as.character(InMEDA[["SMILES"]])
   	      ##################################
               ##################################
-              SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},
-error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message
-("smiles values is empty")})), trycatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),"NA"))
+              SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})), trycatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),"NA"))
               ###################################
-	      ##################################
-              #####################
+	      ###################################
+              ###################################
               F2FPL<-tryCatch({F1FPL},error=function(cond){message("List value is empty")})
               ######################
               Find<-tryCatch({length(F2FPL[[1]])},error=function(cond){message("List value is empty")})
@@ -4566,7 +4543,7 @@ error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(
 	      print("enter my test...3")
               print(P1TV2)
               print(as.character(InMEDA[["Adduct"]]))
-	      ##############################
+	      ##########################################
 	       if((!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))) & (F2NPA != 0)){
               ###if(identical(P1TV2,as.character(InMEDA[["Adduct"]]))){
                 ########################
@@ -4589,7 +4566,7 @@ error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(
                 NAT1<-paste("PRECURSORTYPE:",NAT,sep=" ")
                 out<-c(out,NAT1)
 		#################################
-                ###########################
+                #################################
                 FIN1<-InMEDA[["Ionization mode"]]
                 F1IN1<-as.character(FIN1)
                 F2IN1<-paste("IONMODE:",F1IN1,sep=" ")
@@ -4626,25 +4603,22 @@ ey value is empty")}) ,sep=" "))
                   out<-c(out,FINCH)
                 }
                 ####################################################
-		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep="
-"))
+		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=""))
                 out<-c(out,FSIM)
                 ##################################################
                 ###################################################
-                FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChe
-mMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch(
-{getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
-                ################################
-                ################################
+                FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+                ####################################################
+                ####################################################
                 FFOR1<-paste("FORMULA:",FFOR,sep=" ")
                 out<-c(out,FFOR1)
-                #######################
+                ####################################################
 		FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
                 FINS1<-FNA[FINS]
                 FINS2<-ifelse(!sjmisc::is_empty(stringr::str_trim(gsub("INTENSITY:","",FINS1))),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
                 out<-c(out,FINS2)
 		#############################################
-                #######################
+                #############################################
                 FAUT<-as.character(InMEDA[["Authors"]])
                 FAUT1<-paste("AUTHORS:",FAUT,sep=" ")
                 out<-c(out,FAUT1)
@@ -4680,7 +4654,7 @@ mMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA
   		Fpea2<-PeakVali(Fpea1)
   		##############################################
   		if(F2NPA != 0)
-   		###############################
+   		#############################################
   		{
 
     			MV=AAMS1
@@ -4785,8 +4759,7 @@ mMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA
       					out<-c(out,FINCH)
     				}
     				##################################################
-    				FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=
-                                                                                                                                                                             " "))
+    				FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" "))
 
     				out<-c(out,FSIM)
     				#############################################
@@ -4907,8 +4880,7 @@ mMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA
               ###########################
               SM<-as.character(InMEDA[["SMILES"]])
 	      #############################
-	      SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_
-empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),"NA"))
+	      SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),"NA"))
 	      ###########################
               #InMEDA[["SMILES"]]<-SM1
               #InMEDA[["PubChem CID"]]<-CID5
@@ -4978,7 +4950,7 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
     			out<-c(out,F1ONT)
   		}
   		###################################
-  		##################################
+  		###################################
   		if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(
     as.character(InMEDA[["InChI"]]),'InChI=')){
     			if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
@@ -4999,8 +4971,7 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
     			out<-c(out,FINCH)
   		}
   		#######################################
-  		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=
-                                                                                                                                                                           " "))
+  		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" "))
 
   		out<-c(out,FSIM)
   		########################################
@@ -5009,8 +4980,7 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
   		print(stringr::str_trim(as.character(InMEDA[["SMILES"]])))
   		########################################
   		########################################
-  		FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RC
-   hemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+  		FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
   		#########################################
   		#########################################
   		FFOR1<-paste("FORMULA:",FFOR,sep=" ")
@@ -5043,7 +5013,7 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
   		##FCOM<-paste("COMMENT:")
   		FCOM<-paste("COMMENT:",as.character(InMEDA[["Confidence"]]),sep=" ")
   		out<-c(out,FCOM)
- 		#######################
+ 		##########################
   		PT1<-c("Num Peaks:","NumPeaks:")
   		FNPA<-tryCatch({grep(paste(PT1,collapse="|"), FNA)},error=function(cond){message("Num value is empty")})
   		F1NPA<-FNA[FNPA]
@@ -5093,7 +5063,7 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
   	print("enter the part 4")
   	####################################
   	if((as.character(InMEDA[["Adduct"]]) == "[M]+" || as.character(InMEDA[["Adduct"]]) == "[M]-") & (F2NPA != 0)){
-    	####################
+    	###################################
     	print("enter the part 4..if loop")
     	##########################
     		FNA1<-which(stringi::stri_detect_fixed(FNA,"NAME:"))
@@ -5156,13 +5126,13 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
       			out<-c(out,FINCH)
     		}
     		##############################################
+		##############################################
     		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" "))
 
    	 	out<-c(out,FSIM)
     		###########################################
-    		########################################
-    		FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({
-      RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+    		###########################################
+    		FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
     		FFOR1<-paste("FORMULA:",FFOR,sep=" ")
     		out<-c(out,FFOR1)
     		########################################
@@ -5203,7 +5173,7 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
     		Fpea<-FNA[(FNPA+1):Find]
     		Fpea1<-Fpea[!is.na(Fpea)]
     		Fpea2<-PeakVali(Fpea1)
-    		#########################
+    		##############################
     		if(F2NPA != 0)
       		################################
     		{
@@ -5241,7 +5211,7 @@ empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values i
 
     		}## end of the else
     	############################
-    ############################
+    ################################
   		}
   #####################
   #####################
@@ -5428,16 +5398,14 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
               ######################################
               
             }
-            ################################################
+            #################################################
 	    #################################################
 	    FSIM<-paste("SMILES:",tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}),sep=" ")
             out<-c(out,FSIM)
 	    ##############################################
 	    ##############################################
 	    ##############################################
-	    FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMas
-s::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({get
-Cactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+	    FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
 	    #################################################
 	    #########################################
             FFOR1<-paste("FORMULA:",FFOR,sep=" ")
@@ -5492,7 +5460,7 @@ Cactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch
 	      print("this is entering inside the if loop")
               ############################
               MV=ADV4
-	      ###########################
+	      ############################
 	      tes1<-unlist(strsplit(Fpea2, "\t|\t\t|;| +"))
               tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
               tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
@@ -5501,7 +5469,7 @@ Cactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch
               NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:10])))	      
 	      NTES<-c(NTES4,tes4)
 
-
+              ################################################
 
               if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
   	      {
@@ -5714,7 +5682,7 @@ Cactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch
 		InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})      
                 ################################
                 IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
-                #############################
+                ################################
                 if(!sjmisc::is_empty(IKCRV)){
                   ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ";"))
                   F1ONT<-paste("Ontology:",ONTV,sep=" ")
@@ -5744,9 +5712,7 @@ Cactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch
               out<-c(out,FSIM)
               ############################
 	      ############################
-	      FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemM
-ass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({g
-etCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
+	      FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
 	      ############################
 	      #############################
               FFOR1<-paste("FORMULA:",FFOR,sep=" ")
