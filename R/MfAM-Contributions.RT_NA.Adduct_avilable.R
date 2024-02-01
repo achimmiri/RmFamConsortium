@@ -69,18 +69,28 @@ CountNumberofArgs<-function(argsV)
 ###################################################
 argsV1=ifelse(CountNumberofArgs(args) == 7,args,stop("the number of arguments are less than 8 ..please check and pass the correct arguments"))
 File1<-argsV1[1]
+
+
+print("I am adding this temporary ...arg1 to arg7....I am adding this temporarily")
 mz_Tol=as.numeric(argsV1[2])
-##RT_Tol=(as.numeric(argsV1[3])/100)
+
+RT_Tol=(as.numeric(argsV1[3])/100)
 RT_Tol=ifelse(as.numeric(argsV1[3]),(as.numeric(argsV1[3])/100),iflese(is.empty(argsV1[3]),"NA","NA"))
+
 DEFAULT_MZ_TOLERANCE=as.numeric(argsV1[4])
+
 apikey = argsV1[5]
+
 ############################################################################
 ############################################################################
 Sys.setenv(CHEMSPIDER_KEY = apikey)
 rr_auth(apikey)
 ## adding two more arguments to read the ADI.4.csv ..which is the adduct file
 AIN1 = argsV1[6]
+
+
 AD = argsV1[7]
+
 ##########################################################################
 ##mz.25ppm.20RT.R
 ##########################################################################
@@ -171,7 +181,7 @@ PuInKtoSM<-function(getINK)
     csmiles<-c(csmiles,NA)
   }
   return(csmiles)
-  
+
 }
 ###########################################################
 PuInKtoSM1<-function(getINK)
@@ -190,9 +200,9 @@ PuInKtoSM1<-function(getINK)
     csmiles<-c(csmiles,NA)
   }
   return(csmiles)
-  
-}
 
+}
+################################################################
 
 ConvSMItoOID2<-function(getSMI)
 {
@@ -275,9 +285,7 @@ PuNAMEtoOI<-function(getNAME)
 #############################################################################
 getCactus <- function(identifier,representation){
   identifier <- gsub('#', '%23', identifier)
-  ret <- tryCatch(httr::GET(paste("https://cactus.nci.nih.gov/chemical/structure/",
-                                  URLencode(identifier), "/", representation, sep = "")),
-                  error = function(e) NA)
+  ret <- tryCatch(httr::GET(paste("https://cactus.nci.nih.gov/chemical/structure/",URLencode(identifier), "/", representation, sep = "")),error = function(e) NA)
   if (all(is.na(ret)))
     return(NA)
   if (ret["status_code"] == 404)
@@ -2732,14 +2740,14 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       ##########################################################################
       if(!sjmisc::is_empty(PCID2) & (PCID2 !=0))
       {
-        #####################################      
+        #####################################
         print("enter the if loop...inkikey")
         #####################################
         FMa<-c(FMa,PCID2)
         #####################################
       }else{
-        ###########################################################      
-        print("enter the else part")      
+        ###########################################################
+        print("enter the else part")
         ###########################################################
         if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])),'InChI=')){
           ##############################################
@@ -2754,9 +2762,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           PCID2<-tryCatch({as.numeric(PCID1$ExactMass)},error=function(cond){message("Pubchem Id is empty")})
           ###################################
           if(!sjmisc::is_empty(PCID2)){
-            ###########################################	  
+            ###########################################
             print("enter the if loop ...inchi area")
-            ###########################################	  
+            ###########################################
             FMa<-c(FMa,PCID2)
             ############################################
           }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(as.character(InMEDA[["InChI"]]),'CAS:')){
@@ -2776,9 +2784,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	    #############################################
             #############################################
             if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-              ###########################################	    
+              ###########################################
               print("enter the if loop ...cas area")
-              ###########################################	    
+              ###########################################
               FMa<-c(FMa,PCID2)
               ###########################################
             }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
@@ -2795,7 +2803,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
               #######################################
               #######################################
               if(!sjmisc::is_empty(PCID2)){
-                ############################      
+                ############################
                 FMa<-c(FMa,PCID2)
                 #############################
               }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
@@ -2810,7 +2818,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 		######################################
                 ######################################
                 if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-                  ############################################	
+                  ############################################
                   print("entering the if loop..Pubchem CID")
                   ###########################################
                   FMa<-c(FMa,PCID2)
@@ -2820,11 +2828,11 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                   FMa<-c(FMa,as.numeric(ConvCIDtoOID1(FPUCID)[5]))
 
                }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0)
-                   {  
+                   {
                  FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
                }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
                   ########################################################
-                  ########################################################	
+                  ########################################################
                   EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
                   EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CID is empty")})
                   #########################################################
@@ -2832,9 +2840,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                   if(!sjmisc::is_empty(EM1)){
                     FMa<-c(FMa,EM1)
                   }else{
-                    
+
                     ########################################
-                    ########################################	  
+                    ########################################
                     PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
                     FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),FuFtoRe1(InMEDA)))
 		    #########################################
@@ -2843,8 +2851,8 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                   ######################################
                 }else{
                   #####################################
-                  #####################################	
-                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+                  #####################################
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
                   FMa<-c(FMa,PMA)
                   ############################
                   #############################
@@ -2853,7 +2861,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 ### PubchemId is not found ..entering the else loop
                 if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
                   ############################################
-                  ############################################	
+                  ############################################
                   EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
                   EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
                   ############################################
@@ -2864,8 +2872,8 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                     FMa<-c(FMa,EM1)
                   }else{
                     #############################
-                    #############################		  
-                    PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})		  
+                    #############################
+                    PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
                     FMa<-c(FMa,PMA)
                     #############################
                     #############################
@@ -2884,7 +2892,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 ###############################################
                 ##FPUCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
 	        ################################################
-                FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))      
+                FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
                 FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){message("FPUCID value is empty")})
 		##########################################
                 ##########################################
@@ -2895,7 +2903,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 		##########################################
 		##########################################
                 if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-                  
+
                   FMa<-c(FMa,PCID2)
                 }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
                  FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("ConvCIDtoOID1 value is empty")}))
@@ -2905,18 +2913,18 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 
                  }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
                   ##############################################
-                  ##############################################	
+                  ##############################################
                   EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem CID is empty")})
                   EM1<-tryCatch({EM$exactmass},error=function(cond){message("Rdisop::getMolecule exact mass is empty")})
                   ###############################################
                   ###############################################
                   if(!sjmisc::is_empty(EM1)){
-                    
+
                     FMa<-c(FMa,EM1)
                   }else{
-                    
+
                     ####################################
-		    ####################################	  
+		    ####################################
                     PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
 		    #####################################
 		    ########################################
@@ -2926,9 +2934,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                   }
                   ######################################
                 }else{
-                  
-	          #################################		
-                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 conversion is empty")})	
+
+	          #################################
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 conversion is empty")})
                   FMa<-c(FMa,PMA)
                   #################################
                 }
@@ -2937,7 +2945,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 ###### PubchemID is not found... so getting exact mass from
                 if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
                   ############################################
-		  ############################################	
+		  ############################################
                   EM<-tryCatch({stringr::str_trim(Rdisop::getMolecule(as.character(InMEDA[["Formula"]])))},error=function(cond){message("formula to mass conversion is empty")})
                   EM1<-tryCatch({EM$exactmass},error=function(cond){message("Rdisop::getMolecule is empty")})
                   ##########################################
@@ -2946,7 +2954,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                     FMa<-c(FMa,EM1)
                   }else{
                     #############################
-                    PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 conversion is empty")})	  
+                    PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 conversion is empty")})
                     FMa<-c(FMa,PMA)
                     ##############################
                   }
@@ -2976,14 +2984,14 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             if(!sjmisc::is_empty(PCID2)){
               FMa<-c(FMa,PCID2)
             }else if(!sjmisc::is_empty(Fval) & Fval != 0){
-              
-              FMa<-c(FMa,Fval)	    
-              
+
+              FMa<-c(FMa,Fval)
+
             }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
               ######################################
               print("enter the CID pass area ...")
               ######################################
-              ######################################	    
+              ######################################
               FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",as.character(InMEDA[["PubChem CID"]])))
               FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){return(NA)})
 	      ######################################
@@ -2995,9 +3003,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	      #######################################
               ########################################
               if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-                
+
                 FMa<-c(FMa,PCID2)
-                
+
               }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
                 FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID to other value is empty")}))
               }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
@@ -3012,7 +3020,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 }else{
                   ############################
                   ############################
-		  ############################	
+		  ############################
                   PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem to other conversion is empty")})
 		 ###################################################################
 		 ##########################################################
@@ -3025,7 +3033,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 ## formula not found and --smiles and pubchem failed to get PubchemID
                 ##FMa<-c(FMa,PCID2)
                 ##############################
-                PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})      
+                PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
                 FMa<-c(FMa,PMA)
                 ###############################
               }
@@ -3033,16 +3041,16 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
               ### PubchemId is not found ..entering the else loop
               if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
                 ###################################
-                ###################################      
+                ###################################
                 EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem CID is empty")})
                 EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CID is empty")})
-                ###################################		
+                ###################################
                 ###################################
                 if(!sjmisc::is_empty(EM1)){
                   FMa<-c(FMa,EM1)
                 }else{
                   ##############################
-                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
                   FMa<-c(FMa,PMA)
                   #############################
                 }
@@ -3068,25 +3076,25 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	      #####################################################
               #####################################################
               if(!sjmisc::is_empty(PCID2)){
-                
+
                 FMa<-c(FMa,PCID2)
-                
+
               }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
                 FMa<-c(FMa, tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}))
               }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
                  FMa<-c(FMa,as.numeric(PuCIDtoEM(FPUCID)))
               }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
-                
+
                 ###############################################
                 EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Rdisop::getMolecule conversion is empty")})
                 EM1<-tryCatch({EM$exactmass},error=function(cond){message("Exact mass convesrsion failed")})
                 ################################################
                 if(!sjmisc::is_empty(EM1)){
-                  
+
                   FMa<-c(FMa,EM1)
                 }else{
                   #################################
-                  #################################	
+                  #################################
                   PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
                   FMa<-c(FMa,ifelse(!sjmisc::is_empty(tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")})),tryCatch({PMA[4]},error=function(cond){message("Pubchem value is empty")}),tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})))
                   ##################################
@@ -3097,10 +3105,10 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 ### Trying to get the exact mass from name provided
                 ########################################
                 ##PMA<-FuFtoRe(InMEDA)
-		#########################################      
-                PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})      
+		#########################################
+                PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
                 FMa<-c(FMa,PMA)
-                ########################################                
+                ########################################
                  }
               ##########################################
             }else{
@@ -3111,16 +3119,16 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem CID is empty")})
                 ########################################
                 if(!sjmisc::is_empty(EM1)){
-		 ######################################	
+		 ######################################
                   ##print("formula area.....")
                   ##print(EM1)
-		  ##################################	
+		  ##################################
                   FMa<-c(FMa,EM1)
                 }else{
-		  ####################################	
+		  ####################################
                   #########################
                   ##PMA<-FuFtoRe(InMEDA)
-                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+                  PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
                   FMa<-c(FMa,PMA)
                   #########################
                 }
@@ -3131,7 +3139,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         }### InCHi.. end
       } ## end of main else
     }else{
-   ###################################################	    
+   ###################################################
       if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])),'InChI=')){
         ##############################################
         print("enter the Inchi part ...")
@@ -3147,20 +3155,20 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	###########################################
 	#####################################################################################################
         if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-          ###########################################	  
+          ###########################################
           print("enter the if loop ...inchi area")
-          ###########################################	  
+          ###########################################
           FMa<-c(FMa,PCID2)
           ############################################
         }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
            FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){return(0)}))
         }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
-           FMa<-c(FMa, tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){return(0)})) 
+           FMa<-c(FMa, tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){return(0)}))
         }else if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & startsWith(as.character(InMEDA[["InChI"]]),'InChI=') & !sjmisc::is_empty(tryCatch({CONinctoEM(InMEDA)},error=function(cond){message("Inchi to exact mass is empty")}))){
-          
+
           FMa<-c(FMa,tryCatch({CONinctoEM(InMEDA)},error=function(cond){message("Inchi to exact mass is empty")}))
         }else{
-          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 to exact mass is empty")})	
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 to exact mass is empty")})
           FMa<-c(FMa,PMA)
         }
       }else{
@@ -3170,7 +3178,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     }###end of else
   }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["InChI"]]))) & startsWith(stringr::str_trim(as.character(InMEDA[["InChI"]])) ,'CAS:')){
   ###############################################
-    ##browser()	  
+    ##browser()
     print("enter the cas function area.... cas is avilable")
     ############################################
     CV<-stringr::str_trim(as.character(InMEDA[["InChI"]]))
@@ -3191,14 +3199,14 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     print(!sjmisc::is_empty(PCID2))
     #############################################################
     if(!sjmisc::is_empty(PCID2) & (PCID2 != 0)){
-      
+
       FMa<-c(FMa,PCID2)
-      
+
     }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(stringr::str_trim(as.character(InMEDA[["SMILES"]])),'not available')){
       ##########################################
       print("enter the smiles..in cas area")
       ##########################################
-      ##########################################	    
+      ##########################################
       IK<-stringr::str_trim(as.character(InMEDA[["SMILES"]]))
       tes<-tryCatch({rcdk::parse.smiles(IK)},error=function(cond){message("smiles not abe to parse")})
       tes1<-tryCatch({tes[[1]]},error=function(cond){message("smiles parse information is empty")})
@@ -3207,9 +3215,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       ##########################################
       ##########################################
       if(!sjmisc::is_empty(PCID2)){
-        
+
         FMa<-c(FMa,PCID2)
-        
+
       }else if(!sjmisc::is_empty(as.character(InMEDA[["SMILES"]])) & !startsWith(as.character(InMEDA[["SMILES"]]),'not available')){
 	      PCID2<-ifelse(!sjmisc::is_empty(tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)})),tryCatch({ConvSMItoOID1(InMEDA[["SMILES"]])[5]}, error = function(x) {return(0)}),tryCatch({PuSmilesToEM(InMEDA[["SMILES"]])}, error = function(x) {return(0)}))
 	      ##FMa<-c(FMa,PCID2)
@@ -3225,9 +3233,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 
       }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["PubChem CID"]])),'not available')){
         ###############################################################
-	################################################################      
-        PCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))      
-        FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",PCID))      
+	################################################################
+        PCID<-stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))
+        FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",PCID))
         FPUCID1<-as.numeric(FPUCID)
 	############################################
         ############################################
@@ -3236,9 +3244,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	#############################################
 	###########################################
         if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-          
+
           FMa<-c(FMa,PCID2)
-          
+
         }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
           FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){return(0)}))
 
@@ -3253,12 +3261,12 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           #########################################
           #########################################
           if(!sjmisc::is_empty(EM1)){
-            
+
             FMa<-c(FMa,EM1)
           }else{
 
             ###################################
-            ###################################		  
+            ###################################
             PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
 	    ##########################################################
 	    ##########################################################
@@ -3266,16 +3274,16 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             ###################################
             ###################################
           }
-          
+
         }else{
 
           ###################################
-	  print("else loop ..NAME to exact mass..")	
-          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+	  print("else loop ..NAME to exact mass..")
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
           FMa<-c(FMa,PMA)
           #################################
         }
-        #######################################
+     #################################################
       }else{
         ##print("enter the else area ..2")
         #### PubchemID is not found
@@ -3293,7 +3301,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           }else{
             #############################
             PMA<tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
-            #########################	  
+            #########################
             ##PMA<-FuFtoRe(InMEDA)
 	    ##########################
             FMa<-c(FMa,PMA)
@@ -3307,9 +3315,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       ########################################################
       print("entering the pubchemCID area")
       #########################################################
-      PCID<-as.character(InMEDA[["PubChem CID"]])	    
+      PCID<-as.character(InMEDA[["PubChem CID"]])
       FPUCID<-stringr::str_trim(gsub("[[:punct:]]", "",PCID))
-      FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){return(0)})      
+      FPUCID1<-tryCatch({as.numeric(FPUCID)},error=function(cond){return(0)})
       #########################################################
       PCID1<-tryCatch({webchem::pc_prop(as.numeric(FPUCID), properties = c("MolecularFormula", "ExactMass","CanonicalSMILES"))},error=function(cond){message("Pubchem Id is empty")})
       ###############################################
@@ -3318,9 +3326,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       ##################################
       ##################################
       if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-        
+
         FMa<-c(FMa,PCID2)
-        
+
       }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
         FMa<-c(FMa,tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){return(0)}))
 
@@ -3329,16 +3337,16 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 
       }else if(!sjmisc::is_empty(as.character(InMEDA[["Formula"]])) & !startsWith(as.character(InMEDA[["Formula"]]),'not available')){
         #####################################
-        #####################################      
+        #####################################
         EM<-tryCatch({Rdisop::getMolecule(as.character(InMEDA[["Formula"]]))},error=function(cond){message("Pubchem Id is empty")})
         EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
         ####################################
         ####################################
         if(!sjmisc::is_empty(EM1)){
-          
+
           FMa<-c(FMa,EM1)
         }else{
-          
+
           ####################################
           PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
 	  ####################################
@@ -3350,14 +3358,14 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         }
         ####################################
         ####################################
-        
+
       }else{
         print("entering Pubchem CID else loop---not got excat mass from pubchem CID")
         #######################
         PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
         FMa<-c(FMa,PMA)
         ######################
-        
+
       }###end of else
       #######################################
     }else{
@@ -3365,35 +3373,35 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       #### PubchemID is not found
       if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]])))  & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
         #########################################
-        #########################################      
+        #########################################
         EM<-tryCatch({stringr::str_trim(Rdisop::getMolecule(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
         EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
         ########################################
         ########################################
         if(!sjmisc::is_empty(EM1)){
-          
+
           FMa<-c(FMa,EM1)
-          
+
         }else{
           ############################
-          ############################		
-          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})	
+          ############################
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 is empty")})
           FMa<-c(FMa,PMA)
           #############################
 	  #############################
-          
+
         }
         ################################
       }else{
         ###############################
-	###############################      
-        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})      
+	###############################
+        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})
         FMa<-c(FMa,PMA)
         ###############################
 	###############################
-        
+
       }
-    }###end of else loop 
+    }###end of else loop
   }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["SMILES"]])),'not available')){
   ##########################################
     print("enter smiles area --2")
@@ -3411,13 +3419,13 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     #######################################
     if(!sjmisc::is_empty(PCID2)){
       print("enter the if loop ..smiles")
-      
+
       FMa<-c(FMa,PCID2)
-      
+
     }else if(!sjmisc::is_empty(Fval) & Fval != 0){
-      
+
       FMa<-c(FMa,Fval)
-      
+
     }else if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["PubChem CID"]]))) & !startsWith(as.character(InMEDA[["PubChem CID"]]),'not available')){
       ############################################
       print("enter the pubchem CID ..smiles area ..meaning smiles are there and not able to get exact mass..pubchem CID is avilable")
@@ -3431,9 +3439,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       ###########################################
       ########################################
       if(!sjmisc::is_empty(PCID2) & (PCID2 !=0)){
-        
+
         FMa<-c(FMa,PCID2)
-        
+
       }else if(tryCatch({as.numeric(ConvCIDtoOID1(FPUCID)[5])},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) != 0){
         FMa<-c(FMa,as.numeric(ConvCIDtoOID1(FPUCID)[5]))
        }else if(tryCatch({as.numeric(PuCIDtoEM(FPUCID))},error=function(cond){message("Pubchem CID is empty..did not get exact mass")}) !=0){
@@ -3447,12 +3455,12 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         ##################################
         ##################################
         if(!sjmisc::is_empty(EM1)){
-          
+
           FMa<-c(FMa,EM1)
-          
+
         }else{
           print("enter the pubchem CID area ..else part in else if..that means formula is empty")
-          
+
           ###################################
           ###################################
           PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
@@ -3475,7 +3483,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         ######################################
       }
       #########################################
-      
+
     }else{
       #### Pubchem CID #########################
       print("entering the else part---smiles ... will check formula...for exact mass")
@@ -3485,25 +3493,25 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
         EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
         ##################################
-        
+
         if(!sjmisc::is_empty(EM1)){
 
           FMa<-c(FMa,EM1)
 
         }else{
-          
+
           ##########################
           ##PMA<-FuFtoRe(InMEDA)
-          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})	
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})
           FMa<-c(FMa,PMA)
           ##########################
         }
-        
-        
+
+
       }else{
         ##############################
-	##############################      
-        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})      
+	##############################
+        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 value is empty")})
         FMa<-c(FMa,PMA)
         ##############################
 	##############################
@@ -3547,9 +3555,9 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       if(!sjmisc::is_empty(EM1)){
         FMa<-c(FMa,EM1)
       }else{
-        
+
         #####################################
-        #####################################      
+        #####################################
         PMA<-tryCatch({ConvPCIDtoOCN(FPUCID)},error=function(cond){message("Pubchem value is empty")})
         #########################################
         #########################################
@@ -3557,7 +3565,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         #######################################
         #######################################
       }
-      
+
     }else{
       print("entering the else of Pubchem CID")
       print("entering this new....in the else part")
@@ -3569,19 +3577,19 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       ##############################
     }
     ################################
-    
+
   }else{
     ###################################
     print("pubchem CID is  not available ...so checking formula..adding new code")
    #######################################################
-   #######################################################   
+   #######################################################
       if(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["Formula"]]))) & !startsWith(stringr::str_trim(as.character(InMEDA[["Formula"]])),'not available')){
       #######################################################
       EM<-tryCatch({Rdisop::getMolecule(stringr::str_trim(as.character(InMEDA[["Formula"]])))},error=function(cond){message("Pubchem Id is empty")})
       EM1<-tryCatch({EM$exactmass},error=function(cond){message("Pubchem Id is empty")})
       ########################################################
       if(!sjmisc::is_empty(EM1)){
-        print("this is entering the formula if loop...")      
+        print("this is entering the formula if loop...")
         FMa<-c(FMa,EM1)
       }else{
         print("adding this new code here")
@@ -3601,25 +3609,26 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           FMa<-c(FMa,PCID2)
           ########################
         }else{
-          ### adding this new part here 
-          ###########################
-          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 ..something breaks")})	
+          ### adding this new part here
+          #############################
+	  #############################
+          PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 ..something breaks")})
           FMa<-c(FMa,PMA)
           ##############################
           ##############################
         }### this is the end of else
-        
+
       }###end of else
       print("this is entering the formula else...that means formula not avilable... in final else loop")
-      
+
       ########################################
       ########################################
        PMA<-tryCatch({FuFtoRe1(InMEDA)},error=function(cond){message("FuFtoRe1 ..something breaks1")})
        FMa<-c(FMa,PMA)
       ###########################################
       ###########################################
-      
-      
+
+
       }else{
       ## Formula is not avilable
         #######################################
@@ -3636,7 +3645,7 @@ NFFilter1<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
   return(FMa)
   ################################
   ################################
-  
+
 }
 
 
@@ -3654,11 +3663,11 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
   ##if(length(IINF)> 0 & !is.na(IINF)){
     ##!sjmisc::is_empty
   #############################
-  if(length(IINF)> 0 & !sjmisc::is_empty(IINF)){	  
+  if(length(IINF)> 0 & !sjmisc::is_empty(IINF)){
     ############################
     IK<-tryCatch({IINF[[1]][1]},error=function(cond){message("Inchiley value is empty")})
     IN<-tryCatch({IINF[[1]][[2]]},error=function(cond){message("InchI value is empty")})
-    PMZ<-tryCatch({IINF[[1]][4]},error=function(cond){message("PrecursorMZ value is empty")})    
+    PMZ<-tryCatch({IINF[[1]][4]},error=function(cond){message("PrecursorMZ value is empty")})
     FM<-tryCatch({IINF[[1]][5]},error=function(cond){message("Formula value is empty")})
     #################################
     ####CID<-tryCatch({webchem::get_cid(IK, from = "inchikey")},error=function(cond){message("webchecm could not fetch the info")})
@@ -3677,7 +3686,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
     CID5<-ifelse(!sjmisc::is_empty(TCID5),TCID5,tryCatch({webchem::cs_convert(IK,from = "inchikey", to = "csid")},error=function(cond){return(NA)}))
     ##################################
     SM<-ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),ifelse(!sjmisc::is_empty(tryCatch({webchem::cs_convert(IN,from="inchi",to="smiles")},error=function(cond){return(NA)})),tryCatch({webchem::cs_convert(IN,from="inchi",to="smiles")},error=function(cond){return(NA)}),tryCatch({getCactus(IN,"smiles")},error=function(cond){return(NA)})))
-    ###################################	
+    ###################################
     SM1<-ifelse(!sjmisc::is_empty(tryCatch({SM},error=function(cond){message("smiles value is empty")})),tryCatch({SM},error=function(cond){message("smile value is empty")}),ifelse(!sjmisc::is_empty(tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")})),tryCatch({gETSmiles(InMEDA)},error=function(cond){message("smiles values is empty")}),tryCatch({ConvINKtoOID1(IK)[3]},error=function(cond){return(NA)})))
     #####################################
     ######SM<-tryCatch({webchem::cir_query(IK,"smiles")},error=function(cond){message("webchecm could not fetch the info")})
@@ -3697,7 +3706,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
     ####InKeyVal<-tryCatch({IK$inchikey},error=function(cond){message("InchiKey is empty")})
     ############################
     if(!sjmisc::is_empty(AUIN) & !sjmisc::is_empty(PMZ)){
-      ##################################	    
+      ##################################
       #if(length(AUIN) > 0 & !is.na(PMZ) ){
       ##########################
       AUIN1<-tryCatch({qdapRegex::ex_between(AUIN, "[", "]")[[1]]},error=function(cond){message("Adduct value is missing")})
@@ -3807,9 +3816,9 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
                 F1ONT<-paste("Ontology:",ONTV,sep=" ")
                 out<-c(out,F1ONT)
               }else{
-                F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})      
+                F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
                 out<-c(out,F1ONT)
-              }              
+              }
               ###############################################
               ###############################################
               ### Changing this part inchi ..inchikey and smiles
@@ -3830,8 +3839,9 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
                 out<-c(out,FINK)
                 FINCH<-paste("INCHI:",InchiV,sep=" ")
                 out<-c(out,FINCH)
-                
+
               }
+	      ###############################################
 	      ###############################################
               FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" "))
               ##############################################
@@ -3849,7 +3859,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
               FINS2<-ifelse(!sjmisc::is_empty(FINS1),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
               out<-c(out,FINS2)
 	      ###################################################
-              ############################
+              ###################################################
               FAUT<-as.character(InMEDA[["Authors"]])
               FAUT1<-paste("AUTHORS:",FAUT,sep=" ")
               out<-c(out,FAUT1)
@@ -3884,10 +3894,11 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
               Fpea<-FNA[(FNPA+1):Find]
               Fpea1<-Fpea[!is.na(Fpea)]
               Fpea2<-PeakVali(Fpea1)
+	      #################################
               ###out<-c(out,F1NPA)
               ###################
               ######Fpea<-FNA[(FNPA+1):Find]
-              #########################
+              ###############################
 	      if(F2NPA != 0)
               {
 
@@ -3926,13 +3937,13 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
 	      ###########################################
 	      ##########################################
                }else{
-		    ### tHIS IS THE NEWLY ADDED ELSE LOOP TO THIS CODE   
+		    ### tHIS IS THE NEWLY ADDED ELSE LOOP TO THIS CODE
               #####################################################
               print("enter the part 1..... P1TV2...Adduct")
               #####################################################
               #########################################
               if((as.character(InMEDA[["Adduct"]]) == "[M]+" || as.character(InMEDA[["Adduct"]]) == "[M]-") & (F2NPA != 0)){
-                ######################################	    
+                ######################################
                 ######################################
                 print("enter the part 1..if loop")
                 ###############################
@@ -3972,7 +3983,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
                   F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
                   out<-c(out,F1ONT)
                 }
-                
+
                 #############################################
                 #############################################
                 if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
@@ -4040,48 +4051,48 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
                 ############################
                 Np<-F2NPA
                 Fpea<-FNA[(FNPA+1):Find]
-                Fpea1<-Fpea[!is.na(Fpea)]	      
+                Fpea1<-Fpea[!is.na(Fpea)]
                 Fpea2<-PeakVali(Fpea1)
                 ############################################
                 if(F2NPA != 0)
                 {
-                  
+
                   MV=AAMS1
-                  
+
                   tes1<-unlist(strsplit(Fpea, "\t|\t\t"))
                   tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
                   tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
                   tes4<-which(tes2 > (3+MV))
                   NTES4<-which(tes3 <= 100)
                   NTES<-c(NTES4,tes4)
-                  
+
                   if(Np >= 60)
                   {
-                    
+
                     TES<-Centroid(Np,tes2,tes3,tes4,NTES,NTES4,NTES5,DEFAULT_MZ_TOLERANCE,Fpea2)
-                    
+
                     F1NPA<-TES[[1]]
-                    tes7<-TES[[2]]       
-                    
+                    tes7<-TES[[2]]
+
                     out<-c(out,F1NPA)
                     out<-c(out,tes7)
                   }else{
                     #################################
                     F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
                     out<-c(out,F1NPA)
-                    out<-c(out,Fpea2)      
-                    #################################      
-                    
+                    out<-c(out,Fpea2)
+                    #################################
+
                   }
-              ##################################################    
-                }### end of the else ...F2NPA    
-             ###end of Fea ################################################       
+              ##################################################
+                }### end of the else ...F2NPA
+             ###end of Fea ################################################
              ##############################################################
               }  ### end of "[M]+"
             ################################################################
            #### end of else ###############################################
-            }  
-            
+            }
+
           ###############################################################
           } else if(length(INLL) > 1){
             #####################################
@@ -4094,9 +4105,9 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
 	    #####AAMS1
 	    ##### INstead of VRT
 	    ##### Commenting above three lines
-	    ########################### commenting the original 
+	    ########################### commenting the original
             ###TRA<-unname(rapply(MONMS, function(x) grep("RETENTIONTIME:",x, value=TRUE)))
-            ###TRA1<-as.numeric(stringr::str_trim(stringr::str_replace(TRA, "RETENTIONTIME:", "")))           
+            ###TRA1<-as.numeric(stringr::str_trim(stringr::str_replace(TRA, "RETENTIONTIME:", "")))
             ###TRA2<-abs(VRT-TRA1)
 	    #################### adding this new
 	    TRA<-unname(rapply(MONMS, function(x) grep("PRECURSORMZ:",x, value=TRUE)))
@@ -4140,12 +4151,12 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
             P1TV2<-tryCatch({stringr::str_trim(gsub("ADDUCTIONNAME:","",PTV2))},error=function(cond){message("List value is empty")})
             PTV3 <- tryCatch({paste("PRECURSORTYPE:",P1TV2)},error=function(cond){message("List value is empty")})
 	    #############################################
-            if((!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))) & (F2NPA != 0)){   
+            if((!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))) & (F2NPA != 0)){
 	    ##########################################
-              ##############################
+              ########################################
               FNA1<-which(stringi::stri_detect_fixed(FNA,"NAME:"))
               FNA2<-InMEDA[["Name"]]
-              FNA3<-as.character(FNA2)              
+              FNA3<-as.character(FNA2)
               ################################
               FNAM<-paste("NAME:",FNA3,sep=" ")
               out<-c(out,FNAM)
@@ -4180,15 +4191,15 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
                 F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
                 out<-c(out,F1ONT)
               }
-	      ##############################################	     
+	      ##############################################
               ##############################################
 	      ##print("checking if it is entering this area")
 	      ###print(4188)
-	      ###############################################
+	      #################################################
+	      #################################################
               if(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])) & !startsWith(as.character(InMEDA[["InChI"]]),'not available') & !startsWith(as.character(InMEDA[["InChI"]]),'CAS:') & !startsWith(as.character(InMEDA[["InChI"]]),'InChI=')){
                 if(tryCatch({webchem::is.inchikey(stringr::str_trim(as.character(InMEDA[["InChI"]])))},error=function(cond){message("inchikey..file must be empty")})){
-                  FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey
- value is empty")}) ,sep=" "))
+                  FINK<-ifelse(!sjmisc::is_empty(as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",as.character(InMEDA[["InChI"]])),paste("INCHIKEY:",tryCatch({IK},error=function(cond){message("Inchikey value is empty")}) ,sep=" "))
                   FINCH<-paste("INCHI:",InchiV,sep=" ")
                   out<-c(out,FINK)
                   out<-c(out,FINCH)
@@ -4207,17 +4218,17 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
               ###############################################
 	      ###############################################
 	      FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" ")
-) 
+)
               ##############################################
               #############################################
-              out<-c(out,FSIM)     
-              #################################
+              out<-c(out,FSIM)
+              #############################################
 	      FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
               ###FFOR<-FM$formula
               FFOR1<-paste("FORMULA:",FFOR,sep=" ")
               out<-c(out,FFOR1)
-              ###############################
-              #############################
+              ############################################
+              ############################################
               FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
               FINS1<-FNA[FINS]
               FINS2<-ifelse(!sjmisc::is_empty(stringr::str_trim(gsub("INTENSITY:","",FINS1))),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
@@ -4255,43 +4266,44 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
               ############################
               Np<-F2NPA
               Fpea<-FNA[(FNPA+1):Find]
-              Fpea1<-Fpea[!is.na(Fpea)]	      
+              Fpea1<-Fpea[!is.na(Fpea)]
               Fpea2<-PeakVali(Fpea1)
-              #########################
+              ###############################
               if(F2NPA != 0)
               {
                 ###############################################
                 print("Enter the if loop ...Fpea")
+
                 MV=AAMS1
-               
+
                 tes1<-unlist(strsplit(Fpea, "\t|\t\t"))
                 tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
                 tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
                 tes4<-which(tes2 > (3+MV))
                 NTES4<-which(tes3 <= 100)
-                
+
                 NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:5])))
                 NTES<-c(NTES4,tes4)
-                
+
                 if(Np >= 60)
                 {
-                  
+
                   TES<-Centroid(Np,tes2,tes3,tes4,NTES,NTES4,NTES5,DEFAULT_MZ_TOLERANCE,Fpea2)
-                  
+
                   F1NPA<-TES[[1]]
-                  tes7<-TES[[2]]       
-                  
+                  tes7<-TES[[2]]
+
                   out<-c(out,F1NPA)
                   out<-c(out,tes7)
                 }else{
                   #################################
                   F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
                   out<-c(out,F1NPA)
-                  out<-c(out,Fpea2)      
-                  #################################      
-                  
+                  out<-c(out,Fpea2)
+                  #################################
+
                 }##end of the if loop Np >= 60
-                
+
             ####################################
               }### End of the else,F2NPA
            ####################################
@@ -4359,15 +4371,16 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
       				FINCH<-paste("INCHI:",InchiV,sep=" ")
       				out<-c(out,FINCH)
     			}
-    			#######################################
+    			############################################
+			############################################
     			FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=""))
     			out<-c(out,FSIM)
-    			####################################
-    			####################################
+    			###########################################
+    			############################################
     			FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
     			FFOR1<-paste("FORMULA:",FFOR,sep=" ")
     			out<-c(out,FFOR1)
-    			#############################
+    			###########################################
     			FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
     			FINS1<-FNA[FINS]
     			FINS2<-ifelse(!sjmisc::is_empty(stringr::str_trim(gsub("INTENSITY:","",FINS1))),FINS1,paste("INTENSITY:",sample(100:200,1),sep=""))
@@ -4434,7 +4447,7 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
         				out<-c(out,Fpea2)
         			#################################
       				}
-      				########################################
+      			   ########################################
     				}## End of the main else
     			##########################################################
     			##}
@@ -4459,9 +4472,8 @@ Ikfilter <- function(InKeyVal,InMSPL,InMEDA,InAdVA,InPMZ,InRTL){
       ######################################
       NCIDV<-tryCatch({webchem::get_cid(InKeyVal, from = "inchikey")},error=function(cond){message("webchecm could not fetch the info")})
       NCIDV1<-tryCatch({as.numeric(NCIDV$cid)},error=function(cond){message("webchecm could not fetch the info")})
-      ### adding this new here 
-      FMWFS<-tryCatch({webchem::pc_prop(NCIDV1, properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKe
-y"))},error=function(cond){message("webchem conversion from CID is not sucessful")})
+      ### adding this new here
+      FMWFS<-tryCatch({webchem::pc_prop(NCIDV1, properties = c("MolecularFormula", "ExactMass","CanonicalSMILES","InChI","InChIKey"))},error=function(cond){message("webchem conversion from CID is not sucessful")})
       FMWFS1<-tryCatch({FMWFS$ExactMass},error=function(cond){message("CID to exact mass is empty")})
       SM<-tryCatch({FMWFS$CanonicalSMILES},error=function(cond){message("CID to canonical smiles values is empty")})
       IN<-tryCatch({FMWFS$InChI},error=function(cond){message("CID to inchi value is empty")})
@@ -4469,7 +4481,7 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
       #########################################
       #########################################
       #print(FMWFS1)
-      ######################################
+      #########################################
       if(!sjmisc::is_empty(AUIN) & !sjmisc::is_empty(FMWFS1)){
 	############################################################
         print("enter the line 325")
@@ -4573,13 +4585,13 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
                 out<-c(out,F2IN1)
                 ##################################################
 		##################################################
-		IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})                 
+		IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
 		##################################################
 		if(!sjmisc::is_empty(IKCRV)){
 			ONTV<-do.call(paste, c(as.list(tryCatch({IKCRV@classification$Classification},warning=function(cond){message("Classifier could not fecth the information")})), sep = ","))
 			F1ONT<-paste("Ontology:",ONTV,sep=" ")
 		}else{
-			F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})-
+			F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
                         out<-c(out,F1ONT)
 		}
 		#################################################
@@ -4601,6 +4613,7 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
                   out<-c(out,FINCH)
                 }
                 ####################################################
+		####################################################
 		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=""))
                 out<-c(out,FSIM)
                 ##################################################
@@ -4693,8 +4706,8 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
   			#########################################
   			if((as.character(InMEDA[["Adduct"]]) == "[M]+" || as.character(InMEDA[["Adduct"]]) == "[M]-") & (F2NPA != 0)){
     			#######################################
-    					print("enter the part 3..if loop")
-    					#######################################
+    				print("enter the part 3..if loop")
+    				#######################################
     				FNA1<-which(stringi::stri_detect_fixed(FNA,"NAME:"))
     				FNA2<-InMEDA[["Name"]]
     				FNA3<-as.character(FNA2)
@@ -4763,7 +4776,8 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
     				#############################################
     				#############################################
     				FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
-    ######################################
+    				################################################
+				################################################
     				FFOR1<-paste("FORMULA:",FFOR,sep=" ")
     				out<-c(out,FFOR1)
     				#############################
@@ -4831,9 +4845,9 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
         					out<-c(out,tes7)
       					}else{
        						 #################################
-        					F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
-        					out<-c(out,F1NPA)
-        					out<-c(out,Fpea2)
+        					 F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
+        					 out<-c(out,F1NPA)
+        					 out<-c(out,Fpea2)
        						 #################################
 
       					}
@@ -4861,7 +4875,7 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
 	     ##############################
 	      TRA3<-which(TRA2==min(TRA2[TRA2 > 0]))
 	      ###TRA3<-which.min(TRA2)
-	     ############################## 
+	     ##############################
               ####TRA4<-INLL[TRA3]
               ###TRA5<-InMSPL[TRA4]
               #############################
@@ -4968,6 +4982,7 @@ y"))},error=function(cond){message("webchem conversion from CID is not sucessful
     			out<-c(out,FINCH)
   		}
   		#######################################
+		#######################################
   		FSIM<-ifelse(!sjmisc::is_empty(stringr::str_trim(as.character(InMEDA[["SMILES"]]))),paste("SMILES:",stringr::str_trim(as.character(InMEDA[["SMILES"]])),sep=" "),paste("SMILES:",SM1,sep=" "))
 
   		out<-c(out,FSIM)
@@ -5365,8 +5380,8 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
               ####################
             }else{
 		    print("enter the else loop ...")
-	      ############################################	    
-	      InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})	    
+	      ############################################
+	      InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
               ################################
               IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},error=function(cond){message("Classifier could not fecth the information")})
               ################################
@@ -5379,10 +5394,10 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 		F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){return(NA)})
                 SM<-tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)})
 	        tes1<-tryCatch({ClassSmilesToOntolgy(SM)},error=function(cond){message("smiles to ontology is failing")})
-	        tes2<-paste("Ontology:",tes1,sep=" ")	
-	       
+	        tes2<-paste("Ontology:",tes1,sep=" ")
+
 	        F1ONT<-ifelse(!sjmisc::is_empty(tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){return(NA)})),tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){return(NA)}),tes2)
-	        
+
                 out<-c(out,F1ONT)
               }
               #####################################
@@ -5394,7 +5409,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
               FINCH<-paste("INCHI:",INV3,sep=" ")
 	      out<-c(out,tryCatch({SelectInchiorInchiKey(InMEDA,IK,InchiV)[2]},error=function(cond){return(NA)}))
               ######################################
-              
+
             }
             #################################################
 	    #################################################
@@ -5452,7 +5467,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	    Fpea2<-PeakVali(Fpea1)
 	    #######################################
 	    #######################################
-            if(F2NPA != 0)	    
+            if(F2NPA != 0)
 	    #############################
             {
 	      print("this is entering inside the if loop")
@@ -5464,7 +5479,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
               tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
               tes4<-which(tes2 > (3+MV))
 	      NTES4<-which(tes3 <= 100)
-              NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:10])))	      
+              NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:10])))
 	      NTES<-c(NTES4,tes4)
 
               ################################################
@@ -5479,7 +5494,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 		if((Np >= 60) & (length(NTES1) > 1))
 		{
 
-			
+
 
 			tes5<-tes2[-NTES1]
 			tes6<-tes3[-NTES1]
@@ -5488,7 +5503,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 			intenV<-tes6
 
 
-                        
+
 			if(length(mzV) > 1)
   			{
 
@@ -5505,7 +5520,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 
     				tes5<-tes2
     				tes6<-tes3
-                               
+
 
 
 
@@ -5554,7 +5569,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     				out<-c(out,tes7)
 
   			}## end of if else loop
-		
+
 		}#### end of the else
 
   	      }else{
@@ -5624,18 +5639,18 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	          }### end of else
 
 	 #########################################################
-         #########################################################      
+         #########################################################
               }
 	 ########################################################
-	      }### end of the else and Np >= 120                  
-	 ##############################################################     
+	      }### end of the else and Np >= 120
 	 ##############################################################
-	 ##############################################################  
+	 ##############################################################
+	 ##############################################################
             } ## end of else
        #########################################################
        #########################################################
           }else{
-            ####################################	  
+            ####################################
             print("enter the else part...1")
             ####################################
             ####################################
@@ -5676,8 +5691,8 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 #############################
               }else{
                 ###################################
-		###################################      
-		InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})      
+		###################################
+		InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
                 ################################
                 IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
                 ################################
@@ -5687,7 +5702,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                   out<-c(out,F1ONT)
                 }else{
                   ##F1ONT<-paste("Ontology:","",sep=" ")
-		  F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})    	
+		  F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
                   out<-c(out,F1ONT)
                 }
                 ##########################
@@ -5701,8 +5716,8 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 ####out<-c(out,FINCH)
 		out<-c(out,tryCatch({SelectInchiorInchiKey(InMEDA,IK,InchiV)[2]},error=function(cond){return(NA)}))
                 #############################
-                
-                
+
+
               }
               ###########################
               ###########################
@@ -5760,15 +5775,15 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	      if(F2NPA != 0)
 	      #####################################
               {
-                
+
                 MV=AAMS1
-	        
+
 	        tes1<-unlist(strsplit(Fpea2, "\t|\t\t|;| +"))
                 tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
                 tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
                 tes4<-which(tes2 > (3+MV))
 		NTES4<-which(tes3 <= 100)
-		
+
 		NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:10])))
 		NTES<-c(NTES4,tes4)
 
@@ -5780,7 +5795,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 
 			if((Np >= 60) & (length(NTES1) > 1))
 			{
-			
+
 
 				tes5<-tes2[-NTES1]
 				tes6<-tes3[-NTES1]
@@ -5830,7 +5845,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 			}else{
 
 
-				if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES))) 
+				if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
   				{
     					tes5<-tes2[-NTES]
     					tes6<-tes3[-NTES]
@@ -5853,7 +5868,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	        if((length(NTES) > 1) & (length(NTES) != Np) & (length(Fpea2) > length(NTES)))
                 {
 
-		 ##########################################	
+		 ##########################################
                   if(length(tes2[-NTES]) > 1)
     		  {
 
@@ -5898,7 +5913,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			}else{
 
 	          ###########################
-		  F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))		
+		  F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
                   out<-c(out,F1NPA)
 		  out<-c(out,Fpea2)
 	          ###########################
@@ -5908,13 +5923,13 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                 }
             ##########################################################
 		}### end of else and Np >= 120
-	    ##########################################################	
+	    ##########################################################
 
-              }### end of the if loop and Num Peaks 
+              }### end of the if loop and Num Peaks
            ############################################
             }
 
-	  ### Adding this new 
+	  ### Adding this new
 	  ##################################################
          #####################################################
           } ### adduct match
@@ -5971,13 +5986,13 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           print(P1TV2)
           print(as.character(InMEDA[["Adduct"]]))
 	  ##########################################################################
-           
+
 
 	  ##########################################################################
-	  #### adding this new here 
+	  #### adding this new here
           if((!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))) & (F2NPA != 0)){
   		##if(!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))){
-  		##################################################		  
+  		##################################################
  		##################################################
   		print("enter the line ...511")
   		################################################
@@ -6015,9 +6030,9 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			out<-c(out,FINIKOT)
     			####################
   		}else{
-    
-    			##############################################	    
-    			InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})	    
+
+    			##############################################
+    			InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
     			################################
     			################################
     			IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
@@ -6028,7 +6043,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       				out<-c(out,F1ONT)
     			}else{
       				##F1ONT<-paste("Ontology:","",sep=" ")
-      				F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})      
+      				F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
       				out<-c(out,F1ONT)
     			}
     			##################################
@@ -6099,7 +6114,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
   		if(F2NPA != 0)
     		#####################################
   		{
-    
+
     			MV=ADV4
     			tes1<-unlist(strsplit(Fpea2, "\t|\t\t|;| +"))
     			tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
@@ -6108,62 +6123,62 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			NTES4<-which(tes3 <= 100)
     			NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:10])))
     			NTES<-c(NTES4,tes4)
-    
+
     			if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
     			{
-      				NTES1<-c(NTES4,tes4)      
-      
+      				NTES1<-c(NTES4,tes4)
+
       				if((Np >= 60) & (length(NTES1) > 1))
       				{
         				tes5<-tes2[-NTES1]
         				tes6<-tes3[-NTES1]
-        
+
         				mzV<-tes5
         				intenV<-tes6
-        
-        
+
+
         				if(length(mzV) > 1)
         				{
-          
+
           					nMZV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
           					nINV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
           					tes7<-paste(nMZV,nINV,sep="\t")
           					F1NPA<-paste0("Num Peaks: ",length(tes7))
-          
+
           					out<-c(out,F1NPA)
           					out<-c(out,tes7)
-          
+
         				}else{
-          
+
           					tes5<-tes2
           					tes6<-tes3
-          
+
           					nMZV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
           					nINV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
-          
+
           					if(length(nMZV) > 1 & length(nINV) > 1)
           					{
-            
+
             						tes7<-paste(nMZV,nINV,sep="\t")
-            
+
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}else{
-            
+
             						tes7<-paste(tes5,tes6,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
           					}## end of if else
-          
+
         			}
-        
-        
+
+
       			}else{
-        
-        
+
+
         			if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
         			{
           				tes5<-tes2[-NTES]
@@ -6172,26 +6187,26 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           				F1NPA<-paste0("Num Peaks: ",length(tes7))
           				out<-c(out,F1NPA)
           				out<-c(out,tes7)
-          
+
         			}else{
-          
+
           				tes7<-paste(tes2,tes3,sep="\t")
           				F1NPA<-paste0("Num Peaks: ",length(tes7))
           				out<-c(out,F1NPA)
           				out<-c(out,tes7)
-          
+
         			}## end of if else loop
-        
+
       			}### end of the else
-      
+
     		}else{
-      
-      			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))		
+
+      			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
       			{
-        
+
         			if(length(tes2[-NTES]) > 1)
         			{
-          
+
           				tes5<-tes2[-NTES]
           				tes6<-tes3[-NTES]
           				tes7<-paste(tes5,tes6,sep="\t")
@@ -6202,48 +6217,48 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           				out<-c(out,tes7)
           				##############################
         			}else{
-          
+
           				tes5<-tes2
           				tes6<-tes3
           				tes7<-paste(tes5,tes6,sep="\t")
           				F1NPA<-paste0("Num Peaks: ",length(tes7))
           				out<-c(out,F1NPA)
           				out<-c(out,tes7)
-          
+
         			}### if,else loop
-        
+
       			}else{
-        
+
         			if((Np >= 60))
         			{
           				mzV<-tes2
           				intenV<-tes3
-          
+
           				nMZV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]
           				nINV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]
-          
+
           				tes7<-paste(nMZV,nINV,sep="\t")
           				F1NPA<-paste0("Num Peaks: ",length(tes7))
-          
+
           				out<-c(out,F1NPA)
           				out<-c(out,tes7)
-          
-          
+
+
         			}else{
-          
-          
+
+
           				######################
-          				F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))	    
+          				F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
           				out<-c(out,F1NPA)
           				out<-c(out,Fpea2)
           				######### Adding this new
-          
+
         				}###end of else amd Np >= 80
        				       #################################
       					}
       				       #######################################################
     					}### end of the if loop and Np >= 120
-    				     ########################################################   
+    				     ########################################################
                                        } ### this is the else MV= ADV4...closing and end of if loop
                                     ############################## adding this new
   				  ##### print test the value
@@ -6251,7 +6266,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                                  ##print(out)
                                   #############################################
                                   #############################################
-  
+
 		}else{
                         #############################################
   			#############################################
@@ -6259,7 +6274,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
                         #############################################
                         #############################################
   			if((as.character(InMEDA[["Adduct"]]) == "[M]+" || as.character(InMEDA[["Adduct"]]) == "[M]-") & (F2NPA != 0)){
-    				############################################		    
+    				############################################
     				############################################
     				FNA1<-which(stringi::stri_detect_fixed(FNA,"NAME:"))
     				FNA2<-InMEDA[["Name"]]
@@ -6295,9 +6310,9 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       					out<-c(out,FINIKOT)
       					####################
     				}else{
-      
+
       					###############################################
-      					InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})      
+      					InKeyVal<-tryCatch({rinchi::get.inchi.key(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
       					################################
       					################################
       					IKCRV<-tryCatch({classyfireR::get_classification(InKeyVal)},warning=function(cond){message("Classifier could not fecth the information")})
@@ -6308,7 +6323,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         					out<-c(out,F1ONT)
       					}else{
         					##F1ONT<-paste("Ontology:","",sep=" ")
-        					F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})	
+        					F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
         					out<-c(out,F1ONT)
       					}
       					##################################
@@ -6334,7 +6349,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     					FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
     					###########################################
     					FFOR1<-paste("FORMULA:",FFOR,sep=" ")
-    					out<-c(out,FFOR1)             
+    					out<-c(out,FFOR1)
     					####################################################
     					###################################################
     					FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
@@ -6379,7 +6394,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     					if(F2NPA != 0)
       					###############################
     					{
-      
+
       						MV=AAMS1
       						tes1<-unlist(strsplit(Fpea2, "\t|\t\t|;| +"))
       						tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
@@ -6387,64 +6402,64 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       						tes4<-which(tes2 > (3+MV))
       						NTES4<-which(tes3 <= 100)
       						NTES<-c(NTES4,tes4)
-      
-      
+
+
       						if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
       						{
         						NTES1<-c(NTES4,tes4)
-        
-        
+
+
         						if((Np >= 60) & (length(NTES1) > 1))
         						{
           							tes5<-tes2[-NTES1]
           							tes6<-tes3[-NTES1]
-          
+
           							mzV<-tes5
           							intenV<-tes6
-          
+
           							if(length(mzV) > 1)
           							{
-            
+
             								nMZV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
             								nINV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
             								tes7<-paste(nMZV,nINV,sep="\t")
             								F1NPA<-paste0("Num Peaks: ",length(tes7))
-            
+
             								out<-c(out,F1NPA)
             								out<-c(out,tes7)
-            
+
           							}else{
-            
+
             								tes5<-tes2
             								tes6<-tes3
-            
+
             								nMZV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
             								nINV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
-            
+
             								if(length(nMZV) > 1 & length(nINV) > 1)
             								{
-              
+
               									tes7<-paste(nMZV,nINV,sep="\t")
-              
+
               									F1NPA<-paste0("Num Peaks: ",length(tes7))
               									out<-c(out,F1NPA)
               									out<-c(out,tes7)
-              
+
             								}else{
-              
+
               									tes7<-paste(tes5,tes6,sep="\t")
               									F1NPA<-paste0("Num Peaks: ",length(tes7))
               									out<-c(out,F1NPA)
               									out<-c(out,tes7)
-              
+
             								}## end of if else
-            
+
           						}
-          
-          
+
+
         				}else{
-          
-          
+
+
           					if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
           					{
             						tes5<-tes2[-NTES]
@@ -6453,26 +6468,26 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}else{
-            
+
             						tes7<-paste(tes2,tes3,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
          					 }## end of if else loop
-          
+
         			}### End of the else
       			}else{
-        
-        			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))	
+
+        			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
         			{
           			####################################
-          
+
           			if(length(tes2[-NTES]) > 1)
           			{
-            
+
             				tes5<-tes2[-NTES]
             				tes6<-tes3[-NTES]
             				tes7<-paste(tes5,tes6,sep="\t")
@@ -6483,39 +6498,39 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             				out<-c(out,tes7)
             				##############################
           			}else{
-            
+
             				tes5<-tes2
             				tes6<-tes3
             				tes7<-paste(tes5,tes6,sep="\t")
             				F1NPA<-paste0("Num Peaks: ",length(tes7))
             				out<-c(out,F1NPA)
             				out<-c(out,tes7)
-            
-          			}### if,else loop		
-          
+
+          			}### if,else loop
+
         			}else{
-          
-          
-          
-          				if((Np >= 60))	
+
+
+
+          				if((Np >= 60))
           				{
             					mzV<-tes2
             					intenV<-tes3
-            
+
             					nMZV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]
             					nINV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]
             					tes7<-paste(nMZV,nINV,sep="\t")
             					F1NPA<-paste0("Num Peaks: ",length(tes7))
             					out<-c(out,F1NPA)
             					out<-c(out,tes7)
-            
-            
-          				}else{	
-            
-            
+
+
+          				}else{
+
+
             					################################################
 						################################################
-            					F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))	   
+            					F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
             					out<-c(out,F1NPA)
             					out<-c(out,Fpea2)
             					################################
@@ -6525,8 +6540,8 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         					}
           ###################################################
       		 }### end of the if loop and Np >= 120
-      	  ##########################################	
-    		}### end of the if loop and F1Npa 
+      	  ##########################################
+    		}### end of the if loop and F1Npa
     	  #####################################
   	    }
   	  #################################
@@ -6535,8 +6550,8 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 	  #########################################################################
 	  ##################################################
        ###################################
-       #################################################	  
-        } else {		
+       #################################################
+        } else {
           #print("entering the line 458")
           PASS<-RRV
         }  ## main else part
@@ -6741,7 +6756,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
   		       ################################################
   		       ################################################
   		       if(F2NPA != 0)
-    		       ###################################
+    		       ################################################
   			{
     		       ############}else{
     				MV=ADV4
@@ -6752,69 +6767,69 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     				tes4<-which(tes2 > (3+MV))
     				NTES4<-which(tes3 <= 100)
     				NTES<-c(NTES4,tes4)
-    
-    
+
+
     				if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
     				{
       					###NTES1<-c(NTES4,tes4,NTES5)
-      					NTES1<-c(NTES4,tes4)   
-      
-      
-      
+      					NTES1<-c(NTES4,tes4)
+
+
+
       					if((Np >= 60))
       					{
         					tes5<-tes2[-NTES1]
         					tes6<-tes3[-NTES1]
-        
+
         					mzV<-tes5
         					intenV<-tes6
-        
+
         					if(length(mzV) > 1)
         					{
-          
+
           						print("enter inside if loop")
           						nMZV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
           						nINV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
           						tes7<-paste(nMZV,nINV,sep="\t")
           						F1NPA<-paste0("Num Peaks: ",length(tes7))
-          
+
           						out<-c(out,F1NPA)
           						out<-c(out,tes7)
-          
+
         					}else{
-          
+
           						tes5<-tes2
           						tes6<-tes3
-          
+
           						nMZV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
           						nINV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
-          
+
           						if(length(nMZV) > 1 & length(nINV) > 1)
           						{
-            
+
             							print("enter the value of nMZV and nINV")
             							tes7<-paste(nMZV,nINV,sep="\t")
-            
+
             							F1NPA<-paste0("Num Peaks: ",length(tes7))
             							out<-c(out,F1NPA)
             							out<-c(out,tes7)
-            
+
           						}else{
-            
+
             							tes7<-paste(tes5,tes6,sep="\t")
            							F1NPA<-paste0("Num Peaks: ",length(tes7))
             							out<-c(out,F1NPA)
             							out<-c(out,tes7)
-            
+
           						}## end of if else
-          
+
         				}
-        
-        
+
+
       				}else{
-        
-        
-        				if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))  
+
+
+        				if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
         				{
           					tes5<-tes2[-NTES]
           					tes6<-tes3[-NTES]
@@ -6822,26 +6837,26 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           					F1NPA<-paste0("Num Peaks: ",length(tes7))
           					out<-c(out,F1NPA)
           					out<-c(out,tes7)
-          
+
         				}else{
-          
+
           					tes7<-paste(tes2,tes3,sep="\t")
           					F1NPA<-paste0("Num Peaks: ",length(tes7))
           					out<-c(out,F1NPA)
           					out<-c(out,tes7)
-          
+
         				}## end of if else loop
-        
+
       				}### end of the else
-      
+
     		}else{
-      
-      			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))		   
+
+      			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
       			{
-        
+
         			if(length(tes2[-NTES]) > 1)
         			{
-          
+
           				tes5<-tes2[-NTES]
           				tes6<-tes3[-NTES]
           				tes7<-paste(tes5,tes6,sep="\t")
@@ -6852,59 +6867,59 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           				out<-c(out,tes7)
           				##############################
         			}else{
-          
+
           				tes5<-tes2
           				tes6<-tes3
           				tes7<-paste(tes5,tes6,sep="\t")
           				F1NPA<-paste0("Num Peaks: ",length(tes7))
           				out<-c(out,F1NPA)
           				out<-c(out,tes7)
-          
+
         			}### if,else loop
-        
+
       			}else{
-        
-        
+
+
         			if((Np >= 60))
         			{
           				mzV<-tes2
           				intenV<-tes3
-          
+
           				nMZV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]
           				nINV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]
           				tes7<-paste(nMZV,nINV,sep="\t")
           				F1NPA<-paste0("Num Peaks: ",length(tes7))
           				out<-c(out,F1NPA)
           				out<-c(out,tes7)
-          
+
         			}else{
-          
-          
+
+
          			 	################################
           				F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
           				out<-c(out,F1NPA)
           				out<-c(out,Fpea2)
           				##out<-c(out,Fpea)
           				################################
-          
-          
+
+
         			}
-        
+
       				}
-      
+
       			#################################################
       			#################################################
     			} ### end of if loop and else Np >= 120
-   		      #################################################	  
+   		      #################################################
   			} ## end of else
   		#################################### adding this } new
   		###################################################
 		}else{
-  	       ###########################################    
+  	       ###########################################
   		print("enter the else part...3")
   		###########################################
   		###########################################
-  		if((as.character(InMEDA[["Adduct"]]) == "[M]+" || as.character(InMEDA[["Adduct"]]) == "[M]-") & (F2NPA != 0)){      
+  		if((as.character(InMEDA[["Adduct"]]) == "[M]+" || as.character(InMEDA[["Adduct"]]) == "[M]-") & (F2NPA != 0)){
     		###########################################
     		###########################################
     			print("enter the else part...3..if loop")
@@ -6952,7 +6967,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			FINK<-paste("INCHIKEY:",tryCatch({InKeyVal},error=function(cond){message("Inchikey value is empty")}) ,sep=" ")
     			out<-c(out,tryCatch({SelectInchiorInchiKey(InMEDA,IK,InchiV)[1]},error=function(cond){return(NA)}))
     			###out<-c(out,FINK)
-    			############################## 
+    			##############################
     			#################################
     			INV3<-tryCatch({rinchi::get.inchi(tryCatch({gETSmiles(InMEDA)},error=function(cond){return(NA)}))},error=function(cond){return(NA)})
     			FINCH<-paste("INCHI:",INV3,sep=" ")
@@ -6971,8 +6986,8 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			##################################
     			###################################################
     			FFOR1<-paste("FORMULA:",FFOR,sep=" ")
-    			out<-c(out,FFOR1) 
-    			###################################################		
+    			out<-c(out,FFOR1)
+    			###################################################
    			###################################################
     			FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
     			FINS1<-FNA[FINS]
@@ -7018,7 +7033,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			{
       			################################
       				MV=AAMS1
-      			################################# 
+      			#################################
       				tes1<-unlist(strsplit(Fpea, "\t|\t\t"))
       				tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
       				tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
@@ -7026,75 +7041,75 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       				NTES4<-which(tes3 <= 100)
       				NTES<-c(NTES4,tes4)
       				NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:10])))
-      
+
       				if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
       				{
-        				NTES1<-c(NTES4,tes4)     
-        
+        				NTES1<-c(NTES4,tes4)
+
         				if((Np >= 60) & (length(NTES1) > 1))
         				{
           					tes5<-tes2[-NTES1]
           					tes6<-tes3[-NTES1]
-          
+
           					mzV<-tes5
           					intenV<-tes6
-          
+
           					if(length(mzV) > 1)
           					{
-            
+
             						print("enter inside if loop")
             						nMZV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
             						nINV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
             						tes7<-paste(nMZV,nINV,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
-            
+
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}else if(length(tes2[-NTES]) > 1){
-            
-            
-            
+
+
+
             						tes5<-tes2[-NTES]
             						tes6<-tes3[-NTES]
             						tes7<-paste(tes5,tes6,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
-            
+
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}else{
-            
+
             						tes5<-tes2
             						tes6<-tes3
-            
+
             						nMZV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
             						nINV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
-            
+
             						if(length(nMZV) > 1 & length(nINV) > 1)
             						{
-              
+
               							print("enter the value of nMZV and nINV")
               							tes7<-paste(nMZV,nINV,sep="\t")
-              
+
               							F1NPA<-paste0("Num Peaks: ",length(tes7))
               							out<-c(out,F1NPA)
               							out<-c(out,tes7)
-              
+
             						}else{
-              
+
               							tes7<-paste(tes5,tes6,sep="\t")
               							F1NPA<-paste0("Num Peaks: ",length(tes7))
               							out<-c(out,F1NPA)
               							out<-c(out,tes7)
             						}## end of if else
-            
+
           					}
-          
-          
+
+
         			}else{
-          
-          
+
+
           				if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
           				{
             					tes5<-tes2[-NTES]
@@ -7103,28 +7118,28 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             					F1NPA<-paste0("Num Peaks: ",length(tes7))
             					out<-c(out,F1NPA)
             					out<-c(out,tes7)
-            
+
           				}else{
-            
+
             					tes7<-paste(tes2,tes3,sep="\t")
             					F1NPA<-paste0("Num Peaks: ",length(tes7))
             					out<-c(out,F1NPA)
             					out<-c(out,tes7)
-            
+
           				}## end of if else loop
-          
-          
+
+
         				}### end of the else
-        
-        
+
+
       				}else{
-        
-        				if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))	    
+
+        				if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
         				{
-          
+
           					if(length(tes2[-NTES]) > 1)
           					{
-            
+
             						tes5<-tes2[-NTES]
             						tes6<-tes3[-NTES]
             						tes7<-paste(tes5,tes6,sep="\t")
@@ -7135,52 +7150,52 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             						out<-c(out,tes7)
             						##############################
           					}else{
-            
+
             						tes5<-tes2
             						tes6<-tes3
             						tes7<-paste(tes5,tes6,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}### if,else loop
-          
-          
+
+
         				}else{
-          
+
           					###if((Np >= 80))
           					if((Np >= 60))
           					{
             						mzV<-tes2
             						intenV<-tes3
-            
+
             						nMZV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]
             						nINV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]
-            
+
             						tes7<-paste(nMZV,nINV,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
-            
+
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
-            
+
+
           					}else{
-            
-            
+
+
             						################################
-            						F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))		 
+            						F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
             						###F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea)},error=function(cond){message("Fpea is empty")}))
             						out<-c(out,F1NPA)
             						out<-c(out,Fpea2)
-            						###out<-c(out,Fpea)	    
+            						###out<-c(out,Fpea)
             						################################
-            
+
           					}## end of else and Np >= 80
          				 #########################################
         					}
         				 ########################################
-      						}### end of if loop and Np >= 120 
-      					 ########################################	    
+      						}### end of if loop and Np >= 120
+      					 ########################################
     						}
     					 ############################
   						}
@@ -7247,7 +7262,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
               ################################## adding this new
               ##########################################################################
               if((!sjmisc::is_empty(P1TV2) || !sjmisc::is_empty(as.character(InMEDA[["Adduct"]]))) & (F2NPA != 0)){
-  			###################################################	      
+  			###################################################
   			##################################################
   			print("enter the line ...1020")
   			#################################################
@@ -7286,12 +7301,12 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     				out<-c(out,F1ONT)
   			}else{
     				##F1ONT<-paste("Ontology:","",sep=" ")
-    				F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})	
+    				F1ONT<-tryCatch({MaKE.ONT.REC(InMEDA)[1]},error=function(cond){message("Classifier could not fecth the information")})
     				out<-c(out,F1ONT)
   			}
   			###############################
-  
-  
+
+
   			#############################
   			out<-c(out,tryCatch({SelectInchiorInchiKey(InMEDA,IK,InchiV)[1]},error=function(cond){return(NA)}))
   			###out<-c(out,paste("INCHIKEY:",InKeyVal,sep=" "))
@@ -7358,74 +7373,74 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			################################
   			{
     				##############################################
-    				##############################################	
+    				##############################################
     				tes1<-unlist(strsplit(Fpea, "\t|\t\t"))
     				tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
     				tes3<-as.numeric(tes1[schoolmath::is.even(seq_along(tes1))])
     				tes4<-which(tes2 > (3+MV))
    				NTES4<-which(tes3 <= 100)
     				NTES<-c(NTES4,tes4)
-    
-    
+
+
     				if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
     				{
       					NTES1<-c(NTES4,tes4,NTES5)
-      
-      
+
+
       					#############################################
       					if((Np >= 60) & (length(NTES1) > 1))
       					{
         					tes5<-tes2[-NTES1]
         					tes6<-tes3[-NTES1]
-        
+
         					mzV<-tes5
         					intenV<-tes6
-        
+
         					if(length(mzV) > 1)
         					{
-          
+
           						print("enter inside if loop")
           						nMZV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
           						nINV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
           						tes7<-paste(nMZV,nINV,sep="\t")
           						F1NPA<-paste0("Num Peaks: ",length(tes7))
-          
+
           						out<-c(out,F1NPA)
           						out<-c(out,tes7)
-          
+
         					}else{
-          
+
           						tes5<-tes2
           						tes6<-tes3
-          
+
           						nMZV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
           						nINV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
-          
+
           						if(length(nMZV) > 1 & length(nINV) > 1)
           						{
-            
+
             							print("enter the value of nMZV and nINV")
             							tes7<-paste(nMZV,nINV,sep="\t")
-            
+
             							F1NPA<-paste0("Num Peaks: ",length(tes7))
             							out<-c(out,F1NPA)
             							out<-c(out,tes7)
-            
+
           						}else{
-            
+
             							tes7<-paste(tes5,tes6,sep="\t")
             							F1NPA<-paste0("Num Peaks: ",length(tes7))
             							out<-c(out,F1NPA)
             							out<-c(out,tes7)
           						}## end of if else
-          
+
         						}
-        
-        
-        
+
+
+
       					}else{
-        
-        
+
+
         					if(length(tes2[-NTES]) > 1)
         					{
           						tes5<-tes2[-NTES]
@@ -7434,27 +7449,27 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           						F1NPA<-paste0("Num Peaks: ",length(tes7))
           						out<-c(out,F1NPA)
           						out<-c(out,tes7)
-          
+
         					}else{
-          
+
           						tes7<-paste(tes2,tes3,sep="\t")
           						F1NPA<-paste0("Num Peaks: ",length(tes7))
           						out<-c(out,F1NPA)
           						out<-c(out,tes7)
-          
+
         					}## end of if else loop
-        
+
       				}### end of else
-      
-      
+
+
     			}else{
-      
-      				if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))	   
+
+      				if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
       				{
-        
+
         				if(length(tes2[-NTES]) > 1)
         				{
-          
+
           					tes5<-tes2[-NTES]
           					tes6<-tes3[-NTES]
           					tes7<-paste(tes5,tes6,sep="\t")
@@ -7465,55 +7480,55 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
           					out<-c(out,tes7)
           					##############################
         				}else{
-          
+
           					tes5<-tes2
           					tes6<-tes3
           					tes7<-paste(tes5,tes6,sep="\t")
           					F1NPA<-paste0("Num Peaks: ",length(tes7))
           					out<-c(out,F1NPA)
           					out<-c(out,tes7)
-          
+
         				}### if,else loop
         	            #############################
       				}else{
         		#############################
-        
-        			if((Np >= 60))		  
+
+        			if((Np >= 60))
         			{
           				mzV<-tes2
           				intenV<-tes3
-          
+
           				nMZV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]
           				nINV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]
-          
+
           				tes7<-paste(nMZV,nINV,sep="\t")
           				F1NPA<-paste0("Num Peaks: ",length(tes7))
-          
+
           				out<-c(out,F1NPA)
           				out<-c(out,tes7)
-          
-          
-        			}else{	  
-          
-          
+
+
+        			}else{
+
+
           			####################################
-          			F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))	   
+          			F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
           			###F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea)},error=function(cond){message("Fpea is empty")}))
           			out<-c(out,F1NPA)
           			out<-c(out,Fpea2)
           			##out<-c(out,Fpea)
           			####################################
         			}## end of else and Np >= 80
-        		    ######################################## 
+        		    ########################################
       				}
       			#########################################
     				}### end of if loop and Np >= 120
-   			 #########################################	  
+   			 #########################################
   			} ### this is the else MV= ADV4...closing
   		   #############################################
  		 #############################################
 		}else{
-  			#####################################     
+  			#####################################
   			print("enter the else part...4")
   			#####################################
  			 #####################################
@@ -7578,7 +7593,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			     FFOR=ifelse(!sjmisc::is_empty(gETSmiles(InMEDA)),ifelse(!sjmisc::is_empty(tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)})),tryCatch({RChemMass::MolFormFromSmiles.rcdk(gETSmiles(InMEDA))},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})),ifelse(!sjmisc::is_empty(InMEDA[["InChI"]]),tryCatch({getCactus(InMEDA[["InChI"]], "formula")},error=function(cond){return(NA)}),tryCatch({InMEDA[["Formula"]]},error=function(cond){return(NA)})))
     			     FFOR1<-paste("FORMULA:",FFOR,sep=" ")
     			     out<-c(out,FFOR1)
-    			     ###################################################		
+    			     ###################################################
     			     ###################################################
     			     FINS<-which(stringi::stri_detect_fixed(FNA,"INTENSITY:"))
     			     FINS1<-FNA[FINS]
@@ -7621,7 +7636,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
     			    if(F2NPA != 0)
       			  ###########################
     			   {
-      
+
       				MV=AAMS1
       				tes1<-unlist(strsplit(Fpea, "\t|\t\t"))
       				tes2<-as.numeric(tes1[schoolmath::is.odd(seq_along(tes1))])
@@ -7631,65 +7646,65 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
       				###NTES5<-which(tes3 <= 0.05*max(tes3))
       				NTES5<-which(tes3 <= 0.005*(mean(tes3[order(tes3, decreasing =TRUE)][1:10])))
       				NTES<-c(NTES4,tes4)
-      
+
       				###if(Np >= 60)
       				if((Np >= 60) & (length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
       				{
         				###NTES1<-c(NTES4,tes4,NTES5)
-        				NTES1<-c(NTES4,tes4)    
-        
-        
+        				NTES1<-c(NTES4,tes4)
+
+
         				if((Np >= 60) & (length(NTES1) > 1))
         				{
           					tes5<-tes2[-NTES1]
           					tes6<-tes3[-NTES1]
-          
+
           					mzV<-tes5
           					intenV<-tes6
-          
+
           					if(length(mzV) > 1)
           					{
-            
+
             						nMZV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
             						nINV=tryCatch({cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
             						tes7<-paste(nMZV,nINV,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
-            
+
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}else{
-            
+
             						tes5<-tes2
             						tes6<-tes3
-            
+
             						nMZV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]},error=function(cond){return(0)})
             						nINV=tryCatch({cenPeaks(tes2,tes3, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]},error=function(cond){return(0)})
-            
+
             						if(length(nMZV) > 1 & length(nINV) > 1)
             						{
-              
+
               							tes7<-paste(nMZV,nINV,sep="\t")
-              
+
               							F1NPA<-paste0("Num Peaks: ",length(tes7))
               							out<-c(out,F1NPA)
               							out<-c(out,tes7)
-              
+
             						}else{
-              
+
               							tes7<-paste(tes5,tes6,sep="\t")
               							F1NPA<-paste0("Num Peaks: ",length(tes7))
               							out<-c(out,F1NPA)
               							out<-c(out,tes7)
             						}## end of if else
-            
+
           				}
-          
-          
-          
+
+
+
         				}else{
-          
-          
+
+
           					if((length(tes2[-NTES]) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
           					{
             						tes5<-tes2[-NTES]
@@ -7698,27 +7713,27 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}else{
-            
+
             						tes7<-paste(tes2,tes3,sep="\t")
             						F1NPA<-paste0("Num Peaks: ",length(tes7))
             						out<-c(out,F1NPA)
             						out<-c(out,tes7)
-            
+
           					}## end of if else loop
-          
+
         				}## end of the else
-        
+
       			}else{
-        
-        			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))	   
+
+        			if((length(NTES) > 1) & (length(Fpea2) != length(NTES)) & (length(Fpea2) > length(NTES)))
         			{
           		  ###############################################
-          
+
           				if(length(tes2[-NTES]) > 1)
           				{
-            
+
             					tes5<-tes2[-NTES]
             					tes6<-tes3[-NTES]
             					tes7<-paste(tes5,tes6,sep="\t")
@@ -7729,48 +7744,48 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
             					out<-c(out,tes7)
             					##############################
           				}else{
-            
+
             					tes5<-tes2
             					tes6<-tes3
             					tes7<-paste(tes5,tes6,sep="\t")
             					F1NPA<-paste0("Num Peaks: ",length(tes7))
             					out<-c(out,F1NPA)
             					out<-c(out,tes7)
-            
+
           				}### if,else loop
         		    }else{
-          
+
           			###if((Np >= 80))
           			if((Np >= 60))
           			{
             				mzV<-tes2
             				intenV<-tes3
-            
+
             				nMZV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[1]]
             				nINV=cenPeaks(mzV,intenV, MZ_TOLERANCE=DEFAULT_MZ_TOLERANCE)[[2]]
-            
+
             				tes7<-paste(nMZV,nINV,sep="\t")
             				F1NPA<-paste0("Num Peaks: ",length(tes7))
-            
+
             				out<-c(out,F1NPA)
             				out<-c(out,tes7)
-            
-            
+
+
           		       }else{
-            
+
             				##########################
-            				F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))		  
+            				F1NPA<-paste0("Num Peaks: ",tryCatch({length(Fpea2)},error=function(cond){message("Fpea is empty")}))
             				out<-c(out,F1NPA)
             				out<-c(out,Fpea2)
-            				###out<-c(out,Fpea)	    
+            				###out<-c(out,Fpea)
             				######## Adding this new
           			}## emd of else and Np >= 80
-          
+
           		   ###############################
         			}
         		################################
       			}### end of the if loop and Np >= 120
-      		   ################################   
+      		   ################################
     			}
     		   ###############################
   			}
@@ -7798,7 +7813,7 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
         ###################
       } ## adduct match and exacct mass present
     } else{
-      ##print("enter the final else..2 part")	    
+      ##print("enter the final else..2 part")
       PASS<-RRV
     }
   } ## end of else
@@ -7808,10 +7823,10 @@ NFFilter<-function(InMEDA,InAdVA,InMSPL,InPMZ,InRTL)
 }###NFFilter
 
 
-      
-      
-      
-    
+
+
+
+
 ###########################################################################################
 
 ##print("enter the are before main loop")
@@ -7822,7 +7837,7 @@ for(i in 1:length(LmeCmu1))
   ########################
   print("entering the main function")
   ########################
-  
+
   Val=LmeCmu1[i]
   Val1=LmeCmu1[i+1]
   nVal=Val+1
@@ -7861,7 +7876,7 @@ for(i in 1:length(LmeCmu1))
     BNFiNAEX23<-stringr::str_trim(BNFiNAEX22)
     BNFiNAEX24<-gsub("NRG[\\]Set 10 NRG[\\]", "", BNFiNAEX23)
     BNFiNAEX25<-stringr::str_trim(BNFiNAEX24)
-    ########### changing this############# 
+    ########### changing this#############
     ##FINAMSP<-paste(BNFiNAEX23,"msp",sep=".")
     FINAMSP<-paste(BNFiNAEX25,"msp",sep=".")
     ####################################
@@ -7897,7 +7912,7 @@ for(i in 1:length(LmeCmu1))
     #####################################################################
     if((length(FiNA1) >= 1))
     {
-      #####################################	    
+      #####################################
       print("entering the line ...line 1723")
       #####################################
       CaIF<-tryCatch({MaKlist(FiNA1[1])},error=function(cond){message("some mistake happened in filename..file name must be empty")})
@@ -7935,7 +7950,7 @@ for(i in 1:length(LmeCmu1))
                   IV<-stringr::str_trim(as.character(RRV[["InChI"]]))
 	                #########################################
 		         print("enter the line ...1867")
-		              if(!sjmisc::is_empty(IV)){  
+		              if(!sjmisc::is_empty(IV)){
                     outn<-Ikfilter(IV,lst2,RRV,AIN,fmass,FRTL1)
                     len1<-length(outn)
                     ##############################################
@@ -7944,11 +7959,11 @@ for(i in 1:length(LmeCmu1))
                       print("enter the line ...845")
                       cat(sapply(outn, toString), file=OUNA3, sep="\n",append=TRUE)
                       cat(sapply("", toString), file=OUNA3, sep="\n",append=TRUE)
-                      
+
                     }else{
                       print("enter the line ...1765")
                       FINKE<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
-                      ### adding this code new 
+                      ### adding this code new
                       len3<-length(FINKE)
                       if(len3 > 1){
                         print("enter the line ...856")
@@ -7961,14 +7976,14 @@ for(i in 1:length(LmeCmu1))
 			      FILE<-paste(DN1,"Error.Report.25ppm.20.txt",sep="/")
 			      write.table(unname(as.data.frame(RRV)), file = FILE, sep = "\t",quote=F,row.names = F, col.names = F,append=T)
 		      }
-                      
+
                     } # end of the else loop
-                                      
+
                 }else{
-	        ###########################################	
+	        ###########################################
                   print("enter the line ...1780")
                   FINKE<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
-                  ### adding this code new 
+                  ### adding this code new
                   len3<-length(FINKE)
                   if(len3 > 1){
                     print("enter the line ...873")
@@ -7981,7 +7996,7 @@ for(i in 1:length(LmeCmu1))
 			  FILE<-paste(DN1,"Error.Report.25ppm.20.txt",sep="/")
 			  write.table(unname(as.data.frame(RRV)), file = FILE, sep = "\t",quote=F,row.names = F, col.names = F,append=T)
 		  }
-		 ####################################### 
+		 #######################################
                 }
 		}
               ######################################################################################################################################
@@ -8001,8 +8016,8 @@ for(i in 1:length(LmeCmu1))
                 ##FSMV2<-tryCatch({rinchi::get.inchi.key(FSMV1)},warning=function(cond){message("webchecm could not fetch the info")})
                 ##########################################################
 		            if(!sjmisc::is_empty(FSMV2)){
-		##################################################		    
-			    print("enter the line ...868")	    
+		##################################################
+			    print("enter the line ...868")
                   outn1<-Ikfilter(FSMV2,lst2,RRV,AIN,fmass,FRTL1)
                   len2<-length(outn1)
                   ####################################################
@@ -8011,12 +8026,12 @@ for(i in 1:length(LmeCmu1))
                     print("enter the line ...878")
                     cat(sapply(outn1, toString), file=OUNA3, sep="\n",append=TRUE)
                     cat(sapply("", toString), file=OUNA3, sep="\n",append=TRUE)
-                    
+
                   ##} # end of if loop
                 }else{
-		  print("enter the line ...880")	
+		  print("enter the line ...880")
                   FINKE1<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
-                  ### adding this code new 
+                  ### adding this code new
                   len3<-length(FINKE1)
                   if(len3 > 1){
                     print("enter the line ...888")
@@ -8032,11 +8047,11 @@ for(i in 1:length(LmeCmu1))
 		  }
 		  ####################################
                 } # end of the else loop
-	       
+
 	      }else{
                   print("enter the line ...1780")
                   FINKE1<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
-                  ### adding this code new 
+                  ### adding this code new
                   len3<-length(FINKE1)
                   if(len3 > 1){
                     print("enter the line ...873")
@@ -8082,7 +8097,7 @@ for(i in 1:length(LmeCmu1))
                       print("enter the line ...912")
                       cat(sapply(outn3, toString), file=OUNA3, sep="\n",append=TRUE)
                       cat(sapply("", toString), file=OUNA3, sep="\n",append=TRUE)
-                      
+
                     ##} # end of len4
                   }else{
                     FSMIL<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
@@ -8099,11 +8114,11 @@ for(i in 1:length(LmeCmu1))
 		    }
 		   ##########################
                   } # end of else loop
-		  
+
 		}else{
-                  
+
                   FCAS<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
-                  ### adding this code new 
+                  ### adding this code new
                   len4<-length(FCAS)
                   if(len4 > 1){
                     print("enter the line ...935")
@@ -8134,7 +8149,7 @@ for(i in 1:length(LmeCmu1))
                     print("enter the line ...954")
                     cat(sapply(outn4, toString), file=OUNA3, sep="\n",append=TRUE)
                     cat(sapply("", toString), file=OUNA3, sep="\n",append=TRUE)
-                    
+
                   }else{
                     print("enter the line ...959")
                     FSMIL<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
@@ -8149,9 +8164,9 @@ for(i in 1:length(LmeCmu1))
 			    FILE<-paste(DN1,"Error.Report.25ppm.20.txt",sep="/")
 			    write.table(unname(as.data.frame(RRV)), file = FILE, sep = "\t",quote=F,row.names = F, col.names = F,append=T)
 		    }
-		   ################### 
+		   ###################
                   } ## end of else loop
-	         
+
 	         }else{
                   #print("enter the line ...970")
                   FSMIL<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
@@ -8166,9 +8181,9 @@ for(i in 1:length(LmeCmu1))
 			  FILE<-paste(DN1,"Error.Report.25ppm.20.txt",sep="/")
 			  write.table(unname(as.data.frame(RRV)), file = FILE, sep = "\t",quote=F,row.names = F, col.names = F,append=T)
 		  }
-		 ########################### 
+		 ###########################
                 }
-                
+
               #############################################################################################################################
               }else if(!sjmisc::is_empty(stringr::str_trim(as.character(RRV[["PubChem CID"]]))) & !startsWith(as.character(RRV[["PubChem CID"]]),'not available')){
                 print("enter the line ...939")
@@ -8190,7 +8205,7 @@ for(i in 1:length(LmeCmu1))
                       print("enter the line ...994")
                       cat(sapply(outn6, toString), file=OUNA3, sep="\n",append=TRUE)
                       cat(sapply("", toString), file=OUNA3, sep="\n",append=TRUE)
-                      
+
                     }else{
                       print("enter the line ...999")
                       FCIDR<-NFFilter(RRV,AIN,lst2,fmass,FRTL1)
@@ -8221,7 +8236,7 @@ for(i in 1:length(LmeCmu1))
 			    FILE<-paste(DN1,"Error.Report.25ppm.20.txt",sep="/")
 			    write.table(unname(as.data.frame(RRV)), file = FILE, sep = "\t",quote=F,row.names = F, col.names = F,append=T)
 		    }
-		##################################################### 
+		#####################################################
                   }# end of else loop
                 ##############################################################################
                 ##}else{                                                                    ##
@@ -8240,14 +8255,14 @@ for(i in 1:length(LmeCmu1))
 	      }else{
                 PASS1 <-RRV
               }
-              
+
 	       }
         } ### big else loop
       } ## for loop NRXF3
     } ## End ...NRXF3
  #### adding this temporary### else part
   }
-	 
+
 ###################################
 } ## is_empty(Val and Val1)
 }
