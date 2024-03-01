@@ -171,6 +171,63 @@ SFileNam<-tryCatch({Lmeda$values},error=function(cond){message("rle is not able 
 ##### REST API Functions
 ##########################################################
 ##########################################################
+### Adding new function to get INCHI and INCHIKEY from smile
+extract_InChI_InChIKey <- function(GSMILE) {
+  base_url <- "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
+  url <- paste0(base_url, GSMILE, "/json")
+  
+  response <- tryCatch({
+    jsonlite::fromJSON(url)
+  }, error = function(e) {
+    message("Error retrieving data from PubChem API: ", e$message)
+    return(NULL)
+  })
+  
+  if (is.null(response)) {
+    return(list(InChI = NULL, InChIKey = NULL))
+  }
+  
+  inchi_index <- tryCatch({
+    grep("^InChI$", response$PC_Compounds$props[[1]]$urn$label)
+  }, error = function(e) {
+    message("Error finding InChI index: ", e$message)
+    return(NULL)
+  })
+  
+  inchikey_index <- tryCatch({
+    grep("^InChIKey$", response$PC_Compounds$props[[1]]$urn$label)
+  }, error = function(e) {
+    message("Error finding InChIKey index: ", e$message)
+    return(NULL)
+  })
+  
+  inchi <- NULL
+  if (!is.null(inchi_index) && length(inchi_index) > 0) {
+    inchi <- tryCatch({
+      response$PC_Compounds$props[[1]]$value[inchi_index, "sval"]
+    }, error = function(e) {
+      message("Error retrieving InChI value: ", e$message)
+      return(NULL)
+    })
+  }
+  
+  inchikey <- NULL
+  if (!is.null(inchikey_index) && length(inchikey_index) > 0) {
+    inchikey <- tryCatch({
+      response$PC_Compounds$props[[1]]$value[inchikey_index, "sval"]
+    }, error = function(e) {
+      message("Error retrieving InChIKey value: ", e$message)
+      return(NULL)
+    })
+  }
+  
+  return(list(InChI = inchi, InChIKey = inchikey))
+}
+######################################################################
+#######################################################################
+
+
+
 PuInKtoSM<-function(getINK)
 {
   ###### This Functions return canonical smiles
