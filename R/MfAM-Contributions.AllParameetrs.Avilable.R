@@ -10215,17 +10215,12 @@ for(i in 1:length(LmeCmu1))
                 FSMV <- tryCatch(rinchi::parse.inchi(IV1), error = function(cond) {message("Inchi name must be empty or rinchi not able to fetch"); return(NA)})
 		FSMV1 <- tryCatch(rcdk::get.smiles(FSMV[[1]]), error = function(cond) {message("rcdk get smiles conversion is empty"); return(NA)})
 		#################################################################
-		##FSMV<-tryCatch({rinchi::parse.inchi(IV1)},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
-                ###FSMV1<-tryCatch({rcdk::get.smiles(FSMV[[1]])},error=function(cond){message("rcdk get smiles conversion is empty")})
-                ##FSMV2<-tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")})
-                ################################################
-		print("entering the test area...first print the InChI values")
-		print(IV1)
-		print(FSMV)
-		print(FSMV1)
-		#################################		
-		FSMV2<-ifelse(!sjmisc::is_empty(FSMV1),tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")}),tryCatch({webchem::cs_convert(IV1,from="inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info from cs_convert")}))
-		#############################################################
+		#################################################################
+		FSMV2<-ifelse(!sjmisc::is_empty(FSMV1), tryCatch({ rinchi::get.inchi.key(FSMV1) }, error = function(cond) { message("rinchi::get.inchi.key failed to fetch the info"); return(NA) }), ifelse(!sjmisc::is_empty(IV1), tryCatch({ webchem::cs_convert(IV1, from = "inchi", to = "inchikey") }, error = function(cond) { message("webchem::cs_convert failed to fetch the info"); message("Attempting get_inchikey(IV1)..."); get_inchikey(IV1) }), tryCatch({ get_inchikey(IV1) }, error = function(cond) { message("get_inchikey failed to fetch the info"); return(NA) })))
+		##################################################################		
+		####FSMV2<-ifelse(!sjmisc::is_empty(FSMV1),tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")}),tryCatch({webchem::cs_convert(IV1,from="inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info from cs_convert")}))
+		##################################################################
+		##################################################################
 		print("the value of FSMV2")
 		print(FSMV2)
                 #############################################################
