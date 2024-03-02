@@ -63,6 +63,8 @@ library("readxl")
 library("metaMS")
 library("rcellminer")
 library("R.utils")
+library(httr)
+library(jsonlite)
 #########################################################
 #########################################################
 #######library(GMCM)
@@ -225,9 +227,42 @@ extract_InChI_InChIKey <- function(GSMILE) {
 }
 ######################################################################
 #######################################################################
+### Adding new function to get INCHIKEY from INCHI
+get_inchikey <- function(GINCHI) {
+  tryCatch({
+    # Encode the InChI string
+    encoded_inchi <- URLencode(GINCHI)
 
+    # Define the URL for Chemical Identifier Resolver (CIR) API
+    url <- paste0("https://cactus.nci.nih.gov/chemical/structure/", encoded_inchi, "/stdinchikey")
 
+    # Make the GET request
+    response <- httr::GET(url)
 
+    # Check if the response is NULL
+    if (is.null(response)) {
+      return("Error: NULL response")
+    }
+
+    # Get the HTTP status code
+    status_code <- httr::status_code(response)
+
+    # Check if the status code is 200
+    if (status_code == 200) {
+      # Extract the InChIKey from the response
+      inchikey <- httr::content(response, "text")
+      return(inchikey)
+    } else {
+      # Return error message if the request failed
+      return(paste("Error: Unable to fetch InChIKey. Status code:", status_code))
+    }
+  }, error = function(e) {
+    # Return error message if an exception occurs
+    return(paste("Error:", e$message))
+  })
+}
+############################################################
+############################################################
 PuInKtoSM<-function(getINK)
 {
   ###### This Functions return canonical smiles
@@ -10177,10 +10212,19 @@ for(i in 1:length(LmeCmu1))
                 #####################################################
                 IV1<-stringr::str_trim(as.character(RRV2[["InChI"]]))
                 #############################################################
-                FSMV<-tryCatch({rinchi::parse.inchi(IV1)},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
-                FSMV1<-tryCatch({rcdk::get.smiles(FSMV[[1]])},error=function(cond){message("rcdk get smiles conversion is empty")})
+                FSMV <- tryCatch(rinchi::parse.inchi(IV1), error = function(cond) {message("Inchi name must be empty or rinchi not able to fetch"); return(NA)})
+		FSMV1 <- tryCatch(rcdk::get.smiles(FSMV[[1]]), error = function(cond) {message("rcdk get smiles conversion is empty"); return(NA)})
+		#################################################################
+		##FSMV<-tryCatch({rinchi::parse.inchi(IV1)},error=function(cond){message("Inchi name must be empty or rinchi not abe to fetch")})
+                ###FSMV1<-tryCatch({rcdk::get.smiles(FSMV[[1]])},error=function(cond){message("rcdk get smiles conversion is empty")})
                 ##FSMV2<-tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")})
-                FSMV2<-ifelse(!sjmisc::is_empty(FSMV1),tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")}),tryCatch({webchem::cs_convert(IV1,from="inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info from cs_convert")}))
+                ################################################
+		print("entering the test area...first print the InChI values")
+		print(IV1)
+		print(FSMV)
+		print(FSMV1)
+		#################################		
+		FSMV2<-ifelse(!sjmisc::is_empty(FSMV1),tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")}),tryCatch({webchem::cs_convert(IV1,from="inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info from cs_convert")}))
 		#############################################################
 		print("the value of FSMV2")
 		print(FSMV2)
