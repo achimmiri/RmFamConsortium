@@ -263,6 +263,20 @@ get_inchikey <- function(GINCHI) {
 }
 ############################################################
 ############################################################
+# Function to generate InChIKey from InChI using Open Babel
+generate_inchikey1 <- function(GINCHI) {
+  tryCatch({
+    # Call Open Babel to generate InChIKey
+    inchi_key <- system(sprintf('echo "%s" | obabel -iinchi -oinchikey -', GINCHI), intern = TRUE)
+    return(inchi_key)
+  }, error = function(e) {
+    # Return NA with custom message if an error occurs
+    message <- paste("Error:", e$message)
+    return(NA)
+  })
+}
+############################################################
+############################################################
 PuInKtoSM<-function(getINK)
 {
   ###### This Functions return canonical smiles
@@ -10216,7 +10230,10 @@ for(i in 1:length(LmeCmu1))
 		FSMV1 <- tryCatch(rcdk::get.smiles(FSMV[[1]]), error = function(cond) {message("rcdk get smiles conversion is empty"); return(NA)})
 		#################################################################
 		#################################################################
-		FSMV2<-ifelse(!sjmisc::is_empty(FSMV1), tryCatch({ rinchi::get.inchi.key(FSMV1) }, error = function(cond) { message("rinchi::get.inchi.key failed to fetch the info"); return(NA) }), ifelse(!sjmisc::is_empty(IV1), tryCatch({ webchem::cs_convert(IV1, from = "inchi", to = "inchikey") }, error = function(cond) { message("webchem::cs_convert failed to fetch the info"); message("Attempting get_inchikey(IV1)..."); get_inchikey(IV1) }), tryCatch({ get_inchikey(IV1) }, error = function(cond) { message("get_inchikey failed to fetch the info"); return(NA) })))
+		FSMV2 <- tryCatch({ if (!sjmisc::is_empty(FSMV1)) { rinchi::get.inchi.key(FSMV1) } else { inchi_key <- tryCatch({ webchem_result <- webchem::cs_convert(IV1, from = "inchi", to = "inchikey"); if (!sjmisc::is_empty(webchem_result)) { webchem_result } else { message("webchem::cs_convert failed to fetch the info"); message("Attempting get_inchikey(IV1)..."); get_inchikey_result <- tryCatch({ get_inchikey(IV1) }, error = function(cond) { message("get_inchikey failed to fetch the info"); message("Attempting generate_inchikey1(IV1)..."); generate_inchikey1(IV1) }); get_inchikey_result } }, error = function(cond) { message("Unable to fetch InChIKey."); message("Attempting generate_inchikey1(IV1)..."); generate_inchikey1(IV1) }); inchi_key } }, error = function(cond) { message("An error occurred during InChIKey generation."); return(NA) })
+		###################################################################
+		###################################################################
+		##FSMV2<-ifelse(!sjmisc::is_empty(FSMV1), tryCatch({ rinchi::get.inchi.key(FSMV1) }, error = function(cond) { message("rinchi::get.inchi.key failed to fetch the info"); return(NA) }), ifelse(!sjmisc::is_empty(IV1), tryCatch({ webchem::cs_convert(IV1, from = "inchi", to = "inchikey") }, error = function(cond) { message("webchem::cs_convert failed to fetch the info"); message("Attempting get_inchikey(IV1)..."); return(NA) }), tryCatch({ get_inchikey(IV1) }, error = function(cond) { message("get_inchikey failed to fetch the info"); return(NA) })))
 		##################################################################		
 		####FSMV2<-ifelse(!sjmisc::is_empty(FSMV1),tryCatch({rinchi::get.inchi.key(FSMV1)},error=function(cond){message("webchecm could not fetch the info")}),tryCatch({webchem::cs_convert(IV1,from="inchi", to = "inchikey")},error=function(cond){message("webchecm could not fetch the info from cs_convert")}))
 		##################################################################
