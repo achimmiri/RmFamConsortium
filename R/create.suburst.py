@@ -9,7 +9,7 @@ from rich import table
 from rich import progress
 from plot import main as sunburst
 
-###fileToCheck = "/home/achimmir/temp/RmFamConsortium/R/mFam-data-master-0568feb3cb2847c0625ea5abd4e73cb0b2be9307.1.zip"
+
 ### This is the Zip file of the all the RMassBank files of the contributors
 fileToCheck = sys.argv[1]
 
